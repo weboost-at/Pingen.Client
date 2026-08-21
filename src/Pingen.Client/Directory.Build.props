@@ -1,0 +1,6 @@
+﻿<Project>
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+</Project>
