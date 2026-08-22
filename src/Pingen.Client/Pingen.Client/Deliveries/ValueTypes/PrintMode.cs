@@ -2,14 +2,20 @@ using System.Text.Json.Serialization;
 
 namespace Pingen.Client.Deliveries.ValueTypes;
 
-/// <summary>Which sides of the paper are printed.</summary>
+/// <summary>
+/// Which sides of the paper are printed.
+/// </summary>
 public enum PrintMode
 {
-    /// <summary>One-sided printing.</summary>
+    /// <summary>
+    /// One-sided printing.
+    /// </summary>
     [JsonStringEnumMemberName("simplex")]
     Simplex,
 
-    /// <summary>Two-sided printing.</summary>
+    /// <summary>
+    /// Two-sided printing.
+    /// </summary>
     [JsonStringEnumMemberName("duplex")]
     Duplex,
 }

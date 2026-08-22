@@ -3,18 +3,26 @@ using Pingen.Client.Common.JsonApi;
 
 namespace Pingen.Client.Deliveries.Ebills;
 
-/// <summary>The ebill channel - invoices are created, sent, cancelled and deleted here.</summary>
+/// <summary>
+/// The ebill channel - invoices are created, sent, cancelled and deleted here.
+/// </summary>
 public class EbillService(PingenClient client)
 {
-    /// <summary>Lists one page of the organisation's ebills.</summary>
+    /// <summary>
+    /// Lists one page of the organisation's ebills.
+    /// </summary>
     public async Task<PingenList<Ebill>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<ListDocument<Ebill>>(Path(organisationId), options, cancellationToken)).ToList();
 
-    /// <summary>Lists the organisation's ebills across page boundaries, fetching the next page as the enumeration reaches it.</summary>
+    /// <summary>
+    /// Lists the organisation's ebills across page boundaries, fetching the next page as the enumeration reaches it.
+    /// </summary>
     public IAsyncEnumerable<Ebill> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
-    /// <summary>Creates an ebill from a PDF already uploaded to a presigned URL.</summary>
+    /// <summary>
+    /// Creates an ebill from a PDF already uploaded to a presigned URL.
+    /// </summary>
     public async Task<Ebill> CreateAsync(Guid organisationId, EbillCreateOptions options, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>
         (await client.SendAsync<SingleDocument<Ebill>>(
             HttpMethod.Post,
@@ -24,7 +32,11 @@ public class EbillService(PingenClient client)
             cancellationToken
         )).Data;
 
-    /// <summary>Uploads <paramref name="content"/> to a presigned URL and creates an ebill from it - <see cref="EbillCreateOptions.FileUrl"/> and <see cref="EbillCreateOptions.FileUrlSignature"/> must be unset since the upload fills them.</summary>
+    /// <summary>
+    /// Uploads <paramref name="content"/> to a presigned URL and creates an ebill from it -
+    /// <see cref="EbillCreateOptions.FileUrl"/> and <see cref="EbillCreateOptions.FileUrlSignature"/> must be unset
+    /// since the upload fills them.
+    /// </summary>
     public async Task<Ebill> CreateAsync(
         Guid organisationId,
         Stream content,
@@ -46,19 +58,27 @@ public class EbillService(PingenClient client)
         );
     }
 
-    /// <summary>Fetches one ebill.</summary>
+    /// <summary>
+    /// Fetches one ebill.
+    /// </summary>
     public async Task<Ebill> GetAsync(Guid organisationId, Guid ebillId, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<SingleDocument<Ebill>>(Path(organisationId, ebillId), cancellationToken)).Data;
 
-    /// <summary>Deletes an ebill that has not been sent.</summary>
+    /// <summary>
+    /// Deletes an ebill that has not been sent.
+    /// </summary>
     public Task DeleteAsync(Guid organisationId, Guid ebillId, CancellationToken cancellationToken = default) =>
         client.SendAsync(HttpMethod.Delete, Path(organisationId, ebillId), null, null, cancellationToken);
 
-    /// <summary>Cancels an ebill that is still cancellable.</summary>
+    /// <summary>
+    /// Cancels an ebill that is still cancellable.
+    /// </summary>
     public Task CancelAsync(Guid organisationId, Guid ebillId, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>
         client.SendAsync(HttpMethod.Patch, $"{Path(organisationId, ebillId)}/cancel", null, requestOptions, cancellationToken);
 
-    /// <summary>Dispatches an ebill that was created without auto-send - unlike letters, the ebill send endpoint takes no body.</summary>
+    /// <summary>
+    /// Dispatches an ebill that was created without auto-send - unlike letters, the ebill send endpoint takes no body.
+    /// </summary>
     public async Task<Ebill> SendAsync(Guid organisationId, Guid ebillId, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>
         (await client.SendAsync<SingleDocument<Ebill>>(
             HttpMethod.Patch,
@@ -68,23 +88,33 @@ public class EbillService(PingenClient client)
             cancellationToken
         )).Data;
 
-    /// <summary>Reads the presigned URL of the ebill's PDF that the file endpoint answers its redirect with.</summary>
+    /// <summary>
+    /// Reads the presigned URL of the ebill's PDF that the file endpoint answers its redirect with.
+    /// </summary>
     public Task<Uri> GetFileLocationAsync(Guid organisationId, Guid ebillId, CancellationToken cancellationToken = default) =>
         client.GetLocationAsync($"{Path(organisationId, ebillId)}/file", cancellationToken);
 
-    /// <summary>Downloads the ebill's PDF - the caller owns the stream and releases the connection by disposing it.</summary>
+    /// <summary>
+    /// Downloads the ebill's PDF - the caller owns the stream and releases the connection by disposing it.
+    /// </summary>
     public async Task<Stream> DownloadFileAsync(Guid organisationId, Guid ebillId, CancellationToken cancellationToken = default) =>
         await client.Files.DownloadAsync(await GetFileLocationAsync(organisationId, ebillId, cancellationToken), cancellationToken);
 
-    /// <summary>Lists one page of the ebill's events.</summary>
+    /// <summary>
+    /// Lists one page of the ebill's events.
+    /// </summary>
     public async Task<PingenList<DeliverableEvent>> ListEventsAsync(Guid organisationId, Guid ebillId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<ListDocument<DeliverableEvent>>($"{Path(organisationId, ebillId)}/events", options, cancellationToken)).ToList();
 
-    /// <summary>Reads the presigned URL of an event's image that the image endpoint answers its redirect with.</summary>
+    /// <summary>
+    /// Reads the presigned URL of an event's image that the image endpoint answers its redirect with.
+    /// </summary>
     public Task<Uri> GetEventImageLocationAsync(Guid organisationId, Guid ebillId, Guid eventId, CancellationToken cancellationToken = default) =>
         client.GetLocationAsync($"{Path(organisationId, ebillId)}/events/{eventId}/image", cancellationToken);
 
-    /// <summary>Downloads an event's image - the caller owns the stream and releases the connection by disposing it.</summary>
+    /// <summary>
+    /// Downloads an event's image - the caller owns the stream and releases the connection by disposing it.
+    /// </summary>
     public async Task<Stream> DownloadEventImageAsync(Guid organisationId, Guid ebillId, Guid eventId, CancellationToken cancellationToken = default) =>
         await client.Files.DownloadAsync(await GetEventImageLocationAsync(organisationId, ebillId, eventId, cancellationToken), cancellationToken);
 

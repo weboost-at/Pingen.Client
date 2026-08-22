@@ -3,20 +3,30 @@ using Pingen.Client.Common.JsonApi;
 
 namespace Pingen.Client.Batches;
 
-/// <summary>The batches of an organisation - one upload split into many deliveries, dispatched through one channel.</summary>
+/// <summary>
+/// The batches of an organisation - one upload split into many deliveries, dispatched through one channel.
+/// </summary>
 public class BatchService(PingenClient client)
 {
     private const string BatchType = "batches";
 
-    /// <summary>Lists one page of the organisation's batches.</summary>
+    /// <summary>
+    /// Lists one page of the organisation's batches.
+    /// </summary>
     public async Task<PingenList<Batch>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<ListDocument<Batch>>(BatchesPath(organisationId), options, cancellationToken)).ToList();
 
-    /// <summary>Enumerates every batch of the organisation, fetching the next page whenever the enumeration runs off the current one.</summary>
+    /// <summary>
+    /// Enumerates every batch of the organisation, fetching the next page whenever the enumeration runs off the current
+    /// one.
+    /// </summary>
     public IAsyncEnumerable<Batch> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
-    /// <summary>Creates a batch from an archive or merged PDF that was already uploaded, which requires <see cref="BatchCreateOptions.FileUrl"/> and <see cref="BatchCreateOptions.FileUrlSignature"/> to be set.</summary>
+    /// <summary>
+    /// Creates a batch from an archive or merged PDF that was already uploaded, which requires
+    /// <see cref="BatchCreateOptions.FileUrl"/> and <see cref="BatchCreateOptions.FileUrlSignature"/> to be set.
+    /// </summary>
     public async Task<Batch> CreateAsync(
         Guid organisationId,
         BatchCreateOptions options,
@@ -35,7 +45,10 @@ public class BatchService(PingenClient client)
         return document.Data;
     }
 
-    /// <summary>Uploads <paramref name="content"/> and creates a batch from it, filling <see cref="BatchCreateOptions.FileUrl"/> and <see cref="BatchCreateOptions.FileUrlSignature"/> from the upload - leave both unset.</summary>
+    /// <summary>
+    /// Uploads <paramref name="content"/> and creates a batch from it, filling <see cref="BatchCreateOptions.FileUrl"/>
+    /// and <see cref="BatchCreateOptions.FileUrlSignature"/> from the upload - leave both unset.
+    /// </summary>
     public async Task<Batch> CreateAsync(
         Guid organisationId,
         Stream content,
@@ -57,11 +70,15 @@ public class BatchService(PingenClient client)
         );
     }
 
-    /// <summary>Fetches a single batch.</summary>
+    /// <summary>
+    /// Fetches a single batch.
+    /// </summary>
     public async Task<Batch> GetAsync(Guid organisationId, Guid batchId, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<SingleDocument<Batch>>(BatchPath(organisationId, batchId), cancellationToken)).Data;
 
-    /// <summary>Renames a batch or changes its icon, which Pingen accepts without answering with the batch.</summary>
+    /// <summary>
+    /// Renames a batch or changes its icon, which Pingen accepts without answering with the batch.
+    /// </summary>
     public Task EditAsync(
         Guid organisationId,
         Guid batchId,
@@ -77,7 +94,10 @@ public class BatchService(PingenClient client)
             cancellationToken: cancellationToken
         );
 
-    /// <summary>Deletes a batch, taking its letters and deliveries with it as <paramref name="options"/> asks - this endpoint requires the body.</summary>
+    /// <summary>
+    /// Deletes a batch, taking its letters and deliveries with it as <paramref name="options"/> asks - this endpoint
+    /// requires the body.
+    /// </summary>
     // Pingen honours Idempotency-Key on POST and PATCH only, so no delete takes request options.
     public Task DeleteAsync(
         Guid organisationId,
@@ -93,7 +113,10 @@ public class BatchService(PingenClient client)
             cancellationToken: cancellationToken
         );
 
-    /// <summary>Cancels a batch that is already on its way through production, which Pingen accepts without answering with the batch.</summary>
+    /// <summary>
+    /// Cancels a batch that is already on its way through production, which Pingen accepts without answering with the
+    /// batch.
+    /// </summary>
     public Task CancelAsync(Guid organisationId, Guid batchId, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>
         client.SendAsync(
             method: HttpMethod.Patch,
@@ -103,7 +126,9 @@ public class BatchService(PingenClient client)
             cancellationToken: cancellationToken
         );
 
-    /// <summary>Sends a batch through the channel <paramref name="options"/> was built for.</summary>
+    /// <summary>
+    /// Sends a batch through the channel <paramref name="options"/> was built for.
+    /// </summary>
     public async Task<Batch> SendAsync(
         Guid organisationId,
         Guid batchId,
@@ -123,7 +148,9 @@ public class BatchService(PingenClient client)
         return document.Data;
     }
 
-    /// <summary>Lists one page of the events recorded on a batch.</summary>
+    /// <summary>
+    /// Lists one page of the events recorded on a batch.
+    /// </summary>
     public async Task<PingenList<BatchEvent>> ListEventsAsync(
         Guid organisationId,
         Guid batchId,
@@ -132,7 +159,9 @@ public class BatchService(PingenClient client)
     ) =>
         (await client.GetAsync<ListDocument<BatchEvent>>($"{BatchPath(organisationId, batchId)}/events", options, cancellationToken)).ToList();
 
-    /// <summary>Fetches how the letters of a batch are distributed across validation groups, countries and regions.</summary>
+    /// <summary>
+    /// Fetches how the letters of a batch are distributed across validation groups, countries and regions.
+    /// </summary>
     public async Task<BatchStatistics> GetStatisticsAsync(Guid organisationId, Guid batchId, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<SingleDocument<BatchStatistics>>($"{BatchPath(organisationId, batchId)}/statistics", cancellationToken)).Data;
 

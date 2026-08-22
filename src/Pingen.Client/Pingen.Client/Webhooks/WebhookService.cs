@@ -3,16 +3,23 @@ using Pingen.Client.Common.JsonApi;
 
 namespace Pingen.Client.Webhooks;
 
-/// <summary>The webhook subscriptions of an organisation - <see cref="PingenWebhook"/> handles the payloads they deliver.</summary>
+/// <summary>
+/// The webhook subscriptions of an organisation - <see cref="PingenWebhook"/> handles the payloads they deliver.
+/// </summary>
 public class WebhookService(PingenClient client)
 {
     private const string WebhookType = "webhooks";
 
-    /// <summary>Lists one page of the organisation's webhooks - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
+    /// <summary>
+    /// Lists one page of the organisation's webhooks - this endpoint does not sort, so
+    /// <see cref="PingenListOptions.Sort"/> is ignored.
+    /// </summary>
     public async Task<PingenList<Webhook>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<ListDocument<Webhook>>(WebhooksPath(organisationId), options.WithoutSort(), cancellationToken)).ToList();
 
-    /// <summary>Subscribes to a category of events.</summary>
+    /// <summary>
+    /// Subscribes to a category of events.
+    /// </summary>
     public async Task<Webhook> CreateAsync(
         Guid organisationId,
         WebhookCreateOptions options,
@@ -31,11 +38,15 @@ public class WebhookService(PingenClient client)
         return document.Data;
     }
 
-    /// <summary>Fetches a single webhook.</summary>
+    /// <summary>
+    /// Fetches a single webhook.
+    /// </summary>
     public async Task<Webhook> GetAsync(Guid organisationId, Guid webhookId, CancellationToken cancellationToken = default) =>
         (await client.GetAsync<SingleDocument<Webhook>>($"{WebhooksPath(organisationId)}/{webhookId}", cancellationToken)).Data;
 
-    /// <summary>Cancels a subscription.</summary>
+    /// <summary>
+    /// Cancels a subscription.
+    /// </summary>
     public Task DeleteAsync(Guid organisationId, Guid webhookId, CancellationToken cancellationToken = default) =>
         client.SendAsync(
             method: HttpMethod.Delete,

@@ -2,10 +2,14 @@ using System.Globalization;
 
 namespace Pingen.Client.Common;
 
-/// <summary>Renders <see cref="PingenListOptions"/> as the query string a Pingen list endpoint reads.</summary>
+/// <summary>
+/// Renders <see cref="PingenListOptions"/> as the query string a Pingen list endpoint reads.
+/// </summary>
 public static class PingenQuery
 {
-    /// <summary>The query string for <paramref name="options"/> including the leading <c>?</c>, empty when nothing is set.</summary>
+    /// <summary>
+    /// The query string for <paramref name="options"/> including the leading <c>?</c>, empty when nothing is set.
+    /// </summary>
     public static string Build(PingenListOptions? options)
     {
         if (options is null) return string.Empty;

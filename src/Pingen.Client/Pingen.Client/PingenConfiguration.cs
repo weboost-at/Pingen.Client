@@ -13,10 +13,14 @@ using Pingen.Client.Webhooks;
 
 namespace Pingen.Client;
 
-/// <summary>Registers the Pingen client with a dependency injection container.</summary>
+/// <summary>
+/// Registers the Pingen client with a dependency injection container.
+/// </summary>
 public static class PingenConfiguration
 {
-    /// <summary>Registers the Pingen client, binding options from the <c>Pingen</c> configuration section.</summary>
+    /// <summary>
+    /// Registers the Pingen client, binding options from the <c>Pingen</c> configuration section.
+    /// </summary>
     public static IServiceCollection AddPingen(this IServiceCollection services)
     {
         services.AddOptions<PingenOptions>().BindConfiguration("Pingen").ValidateOnStart();
@@ -24,7 +28,9 @@ public static class PingenConfiguration
         return AddPingenServices(services);
     }
 
-    /// <summary>Registers the Pingen client with options configured in code.</summary>
+    /// <summary>
+    /// Registers the Pingen client with options configured in code.
+    /// </summary>
     public static IServiceCollection AddPingen(this IServiceCollection services, Action<PingenOptions> configure)
     {
         services.AddOptions<PingenOptions>().Configure(configure).ValidateOnStart();

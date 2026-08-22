@@ -2,10 +2,14 @@ using Microsoft.Extensions.Options;
 
 namespace Pingen.Client.Options;
 
-/// <summary>Rejects a Pingen configuration that cannot authenticate.</summary>
+/// <summary>
+/// Rejects a Pingen configuration that cannot authenticate.
+/// </summary>
 public class PingenOptionsValidator : IValidateOptions<PingenOptions>
 {
-    /// <summary>Fails when the client credentials are missing.</summary>
+    /// <summary>
+    /// Fails when the client credentials are missing.
+    /// </summary>
     public ValidateOptionsResult Validate(string? name, PingenOptions options)
     {
         List<string> failures = [];

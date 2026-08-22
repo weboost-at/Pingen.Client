@@ -2,7 +2,9 @@ using System.Net;
 
 namespace Pingen.Client.Common;
 
-/// <summary>Thrown when the Pingen API answers a request with an error status.</summary>
+/// <summary>
+/// Thrown when the Pingen API answers a request with an error status.
+/// </summary>
 public class PingenException(
     HttpStatusCode statusCode,
     IReadOnlyList<PingenError> errors,
@@ -10,16 +12,24 @@ public class PingenException(
     TimeSpan? retryAfter = null
 ) : Exception(Describe(statusCode, errors))
 {
-    /// <summary>The status code of the failed response.</summary>
+    /// <summary>
+    /// The status code of the failed response.
+    /// </summary>
     public HttpStatusCode StatusCode { get; } = statusCode;
 
-    /// <summary>The errors the API reported, empty when the body was not a JSON:API error document.</summary>
+    /// <summary>
+    /// The errors the API reported, empty when the body was not a JSON:API error document.
+    /// </summary>
     public IReadOnlyList<PingenError> Errors { get; } = errors;
 
-    /// <summary>The <c>X-Request-Id</c> of the failed response, worth quoting to Pingen support.</summary>
+    /// <summary>
+    /// The <c>X-Request-Id</c> of the failed response, worth quoting to Pingen support.
+    /// </summary>
     public string? RequestId { get; } = requestId;
 
-    /// <summary>How long to wait before retrying, set when Pingen rate-limited the request.</summary>
+    /// <summary>
+    /// How long to wait before retrying, set when Pingen rate-limited the request.
+    /// </summary>
     public TimeSpan? RetryAfter { get; } = retryAfter;
 
     private static string Describe(HttpStatusCode statusCode, IReadOnlyList<PingenError> errors) => errors switch

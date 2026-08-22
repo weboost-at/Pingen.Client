@@ -5,7 +5,10 @@ using Pingen.Client.Options;
 
 namespace Pingen.Client.Authentication;
 
-/// <summary>Holds the client-credentials access token every Pingen request shares, fetching a new one whenever the cached one is spent.</summary>
+/// <summary>
+/// Holds the client-credentials access token every Pingen request shares, fetching a new one whenever the cached one is
+/// spent.
+/// </summary>
 public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<PingenOptions> options)
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1, maxCount: 1);
@@ -15,7 +18,9 @@ public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<P
     private AccessToken? _token;
     private int _generation;
 
-    /// <summary>Returns the cached token, requesting one from the identity host when none is cached or the cached one expired.</summary>
+    /// <summary>
+    /// Returns the cached token, requesting one from the identity host when none is cached or the cached one expired.
+    /// </summary>
     public async Task<string> GetAsync(CancellationToken cancellationToken = default)
     {
         if (Cached() is { } cached) return cached;
@@ -44,7 +49,9 @@ public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<P
         }
     }
 
-    /// <summary>Drops the cached token so the next request fetches a fresh one - the answer to a 401.</summary>
+    /// <summary>
+    /// Drops the cached token so the next request fetches a fresh one - the answer to a 401.
+    /// </summary>
     public void Invalidate()
     {
         lock (_cache)

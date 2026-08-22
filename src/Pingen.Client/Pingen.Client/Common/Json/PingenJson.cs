@@ -4,10 +4,14 @@ using System.Text.Json.Serialization;
 
 namespace Pingen.Client.Common.Json;
 
-/// <summary>The serializer configuration every Pingen request and response goes through.</summary>
+/// <summary>
+/// The serializer configuration every Pingen request and response goes through.
+/// </summary>
 public static class PingenJson
 {
-    /// <summary>Options wired with the Pingen timestamp and enum conventions, omitting null members when writing.</summary>
+    /// <summary>
+    /// Options wired with the Pingen timestamp and enum conventions, omitting null members when writing.
+    /// </summary>
     public static readonly JsonSerializerOptions Options = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,

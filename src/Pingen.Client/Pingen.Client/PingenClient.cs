@@ -18,16 +18,25 @@ using Pingen.Client.Webhooks;
 
 namespace Pingen.Client;
 
-/// <summary>The Pingen API client - resolve it from dependency injection and reach the resources through its services.</summary>
+/// <summary>
+/// The Pingen API client - resolve it from dependency injection and reach the resources through its services.
+/// </summary>
 public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFactory)
 {
-    /// <summary>The name of the HTTP client talking to the identity host, registered without the authentication handler.</summary>
+    /// <summary>
+    /// The name of the HTTP client talking to the identity host, registered without the authentication handler.
+    /// </summary>
     public const string IdentityClientName = "PingenIdentity";
 
-    /// <summary>The name of the HTTP client talking to presigned file URLs, registered without the authentication handler since a bearer token invalidates a presigned signature.</summary>
+    /// <summary>
+    /// The name of the HTTP client talking to presigned file URLs, registered without the authentication handler since
+    /// a bearer token invalidates a presigned signature.
+    /// </summary>
     public const string FilesClientName = "PingenFiles";
 
-    /// <summary>The media type every JSON body of the Pingen API is sent and returned as.</summary>
+    /// <summary>
+    /// The media type every JSON body of the Pingen API is sent and returned as.
+    /// </summary>
     public const string JsonApiMediaType = "application/vnd.api+json";
 
     private static readonly MediaTypeHeaderValue JsonApiContentType = new(JsonApiMediaType);
@@ -41,28 +50,44 @@ public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFa
     private WebhookService? _webhooks;
     private FileService? _files;
 
-    /// <summary>The letters of an organisation - physical mail Pingen prints, franks and hands to a postal service.</summary>
+    /// <summary>
+    /// The letters of an organisation - physical mail Pingen prints, franks and hands to a postal service.
+    /// </summary>
     public LetterService Letters => _letters ??= new(this);
 
-    /// <summary>The email channel, which delivers a document as an email instead of printing it.</summary>
+    /// <summary>
+    /// The email channel, which delivers a document as an email instead of printing it.
+    /// </summary>
     public EmailService Emails => _emails ??= new(this);
 
-    /// <summary>The ebill channel, which delivers an invoice into the recipient's e-banking.</summary>
+    /// <summary>
+    /// The ebill channel, which delivers an invoice into the recipient's e-banking.
+    /// </summary>
     public EbillService Ebills => _ebills ??= new(this);
 
-    /// <summary>The batches of an organisation - one upload split into many deliveries, dispatched through one channel.</summary>
+    /// <summary>
+    /// The batches of an organisation - one upload split into many deliveries, dispatched through one channel.
+    /// </summary>
     public BatchService Batches => _batches ??= new(this);
 
-    /// <summary>The organisations the authenticated user may act for.</summary>
+    /// <summary>
+    /// The organisations the authenticated user may act for.
+    /// </summary>
     public OrganisationService Organisations => _organisations ??= new(this);
 
-    /// <summary>The user the access token was issued for and the organisations it is associated with.</summary>
+    /// <summary>
+    /// The user the access token was issued for and the organisations it is associated with.
+    /// </summary>
     public UserService Users => _users ??= new(this);
 
-    /// <summary>The webhook subscriptions of an organisation.</summary>
+    /// <summary>
+    /// The webhook subscriptions of an organisation.
+    /// </summary>
     public WebhookService Webhooks => _webhooks ??= new(this);
 
-    /// <summary>The file transfer half of the API - presigned upload targets, raw uploads and downloads.</summary>
+    /// <summary>
+    /// The file transfer half of the API - presigned upload targets, raw uploads and downloads.
+    /// </summary>
     public FileService Files => _files ??= new(this);
 
     internal HttpClient FileClient => httpClientFactory.CreateClient(FilesClientName);

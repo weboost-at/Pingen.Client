@@ -2,10 +2,14 @@ using System.Net;
 
 namespace Pingen.Client.Authentication;
 
-/// <summary>Attaches the cached bearer token to every API request and replays the request once when Pingen rejects the token.</summary>
+/// <summary>
+/// Attaches the cached bearer token to every API request and replays the request once when Pingen rejects the token.
+/// </summary>
 public class PingenAuthenticationHandler(PingenAccessTokens tokens) : DelegatingHandler
 {
-    /// <summary>Sends <paramref name="request"/> authenticated, retrying it once with a fresh token after a 401.</summary>
+    /// <summary>
+    /// Sends <paramref name="request"/> authenticated, retrying it once with a fresh token after a 401.
+    /// </summary>
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         request.Headers.Authorization = new("Bearer", await tokens.GetAsync(cancellationToken));

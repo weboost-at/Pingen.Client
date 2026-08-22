@@ -3,7 +3,10 @@ using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Batches;
 
-/// <summary>How a batch is dispatched when it is sent - the API takes a different resource type per channel, so the channel is picked by factory instead of by property.</summary>
+/// <summary>
+/// How a batch is dispatched when it is sent - the API takes a different resource type per channel, so the channel is
+/// picked by factory instead of by property.
+/// </summary>
 public record BatchSendOptions
 {
     private BatchSendOptions(string type, BatchDeliveryProduct product)
@@ -12,24 +15,35 @@ public record BatchSendOptions
         Product = product;
     }
 
-    /// <summary>The JSON:API type the send request is written as - <c>batches_channel_post_send</c>, <c>batches_channel_email_send</c> or <c>batches_channel_ebill_send</c>.</summary>
+    /// <summary>
+    /// The JSON:API type the send request is written as - <c>batches_channel_post_send</c>,
+    /// <c>batches_channel_email_send</c> or <c>batches_channel_ebill_send</c>.
+    /// </summary>
     [JsonIgnore]
     public string Type { get; }
 
     // Named after the concept rather than the wire field - a member called DeliveryProduct would shadow the enum of that name in this type.
-    /// <summary>The product the deliveries of the batch are dispatched with.</summary>
+    /// <summary>
+    /// The product the deliveries of the batch are dispatched with.
+    /// </summary>
     [JsonPropertyName("delivery_product")]
     public BatchDeliveryProduct Product { get; }
 
-    /// <summary>Which sides of the paper are printed, sent on post batches only.</summary>
+    /// <summary>
+    /// Which sides of the paper are printed, sent on post batches only.
+    /// </summary>
     [JsonPropertyName("print_mode")]
     public PrintMode? PrintMode { get; private init; }
 
-    /// <summary>Which colors are printed, sent on post batches only.</summary>
+    /// <summary>
+    /// Which colors are printed, sent on post batches only.
+    /// </summary>
     [JsonPropertyName("print_spectrum")]
     public PrintSpectrum? PrintSpectrum { get; private init; }
 
-    /// <summary>Dispatches the batch as physical mail.</summary>
+    /// <summary>
+    /// Dispatches the batch as physical mail.
+    /// </summary>
     public static BatchSendOptions Post(DeliveryProduct deliveryProduct, PrintMode printMode, PrintSpectrum printSpectrum) =>
         new(
             type: "batches_channel_post_send",
@@ -40,14 +54,18 @@ public record BatchSendOptions
             PrintSpectrum = printSpectrum,
         };
 
-    /// <summary>Dispatches the batch as email, the only product of that channel.</summary>
+    /// <summary>
+    /// Dispatches the batch as email, the only product of that channel.
+    /// </summary>
     public static BatchSendOptions Email() =>
         new(
             type: "batches_channel_email_send",
             product: BatchDeliveryProduct.ElectronicEmail
         );
 
-    /// <summary>Dispatches the batch as ebills, the only product of that channel.</summary>
+    /// <summary>
+    /// Dispatches the batch as ebills, the only product of that channel.
+    /// </summary>
     public static BatchSendOptions Ebill() =>
         new(
             type: "batches_channel_ebill_send",
@@ -65,34 +83,51 @@ public record BatchSendOptions
     };
 }
 
-/// <summary>The product a batch is dispatched with, which adds the electronic products the postal <see cref="DeliveryProduct"/> does not carry.</summary>
+/// <summary>
+/// The product a batch is dispatched with, which adds the electronic products the postal <see cref="DeliveryProduct"/>
+/// does not carry.
+/// </summary>
 public enum BatchDeliveryProduct
 {
-    /// <summary>Priority mail.</summary>
+    /// <summary>
+    /// Priority mail.
+    /// </summary>
     [JsonStringEnumMemberName("fast")]
     Fast,
 
-    /// <summary>Economy mail.</summary>
+    /// <summary>
+    /// Economy mail.
+    /// </summary>
     [JsonStringEnumMemberName("cheap")]
     Cheap,
 
-    /// <summary>Bulk mail.</summary>
+    /// <summary>
+    /// Bulk mail.
+    /// </summary>
     [JsonStringEnumMemberName("bulk")]
     Bulk,
 
-    /// <summary>Premium mail.</summary>
+    /// <summary>
+    /// Premium mail.
+    /// </summary>
     [JsonStringEnumMemberName("premium")]
     Premium,
 
-    /// <summary>Registered mail.</summary>
+    /// <summary>
+    /// Registered mail.
+    /// </summary>
     [JsonStringEnumMemberName("registered")]
     Registered,
 
-    /// <summary>Email, the product of the email channel.</summary>
+    /// <summary>
+    /// Email, the product of the email channel.
+    /// </summary>
     [JsonStringEnumMemberName("electronic_email")]
     ElectronicEmail,
 
-    /// <summary>Ebill, the product of the ebill channel.</summary>
+    /// <summary>
+    /// Ebill, the product of the ebill channel.
+    /// </summary>
     [JsonStringEnumMemberName("electronic_ebill")]
     ElectronicEbill,
 }

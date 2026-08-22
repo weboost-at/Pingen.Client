@@ -2,10 +2,15 @@ using System.Runtime.CompilerServices;
 
 namespace Pingen.Client.Common;
 
-/// <summary>The page walk every auto-paging enumeration of the library runs.</summary>
+/// <summary>
+/// The page walk every auto-paging enumeration of the library runs.
+/// </summary>
 public static class PingenPaging
 {
-    /// <summary>Enumerates a list endpoint across page boundaries, calling <paramref name="fetchPage"/> again whenever the enumeration reaches the end of the current page.</summary>
+    /// <summary>
+    /// Enumerates a list endpoint across page boundaries, calling <paramref name="fetchPage"/> again whenever the
+    /// enumeration reaches the end of the current page.
+    /// </summary>
     public static async IAsyncEnumerable<T> EnumerateAsync<T>(
         Func<PingenListOptions, CancellationToken, Task<PingenList<T>>> fetchPage,
         PingenListOptions? options = null,

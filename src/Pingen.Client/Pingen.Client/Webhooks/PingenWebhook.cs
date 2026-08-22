@@ -10,10 +10,14 @@ using Pingen.Client.Webhooks.Payloads;
 
 namespace Pingen.Client.Webhooks;
 
-/// <summary>Verifies and parses the payloads Pingen posts to a subscribed webhook URL.</summary>
+/// <summary>
+/// Verifies and parses the payloads Pingen posts to a subscribed webhook URL.
+/// </summary>
 public static class PingenWebhook
 {
-    /// <summary>The header the payload signature arrives in, a lowercase hex HMAC-SHA256 of the raw request body.</summary>
+    /// <summary>
+    /// The header the payload signature arrives in, a lowercase hex HMAC-SHA256 of the raw request body.
+    /// </summary>
     public const string SignatureHeader = "Signature";
 
     private const string IssuesType = "webhook_issues";
@@ -26,13 +30,19 @@ public static class PingenWebhook
 
     private const string ChannelSubscriptionsType = "webhook_channel_subscriptions";
 
-    /// <summary>Verifies the signature of <paramref name="payload"/> and parses it into the event its <c>data.type</c> names, throwing a <see cref="PingenException"/> when the signature does not match or the type is unknown.</summary>
+    /// <summary>
+    /// Verifies the signature of <paramref name="payload"/> and parses it into the event its <c>data.type</c> names,
+    /// throwing a <see cref="PingenException"/> when the signature does not match or the type is unknown.
+    /// </summary>
     public static WebhookEvent ConstructEvent(string payload, string signatureHeader, string signingKey) =>
         VerifySignature(payload, signatureHeader, signingKey)
             ? ParseEvent(payload)
             : throw Rejected("The signature does not match the payload - it was not signed with this webhook's key or the body was altered on the way.");
 
-    /// <summary>Parses a payload whose origin is already established, without verifying its signature, throwing a <see cref="PingenException"/> when it is not a webhook event document.</summary>
+    /// <summary>
+    /// Parses a payload whose origin is already established, without verifying its signature, throwing a
+    /// <see cref="PingenException"/> when it is not a webhook event document.
+    /// </summary>
     public static WebhookEvent ParseEvent(string payload)
     {
         try
@@ -45,7 +55,10 @@ public static class PingenWebhook
         }
     }
 
-    /// <summary>Recomputes the HMAC-SHA256 of the payload with <paramref name="signingKey"/> and compares it with the signature the request arrived with.</summary>
+    /// <summary>
+    /// Recomputes the HMAC-SHA256 of the payload with <paramref name="signingKey"/> and compares it with the signature
+    /// the request arrived with.
+    /// </summary>
     public static bool VerifySignature(string payload, string signatureHeader, string signingKey)
     {
         // Hashed over the bytes as they arrived - re-serializing the payload would change them and break every signature.
