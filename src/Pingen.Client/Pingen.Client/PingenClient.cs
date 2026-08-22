@@ -41,54 +41,45 @@ public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFa
 
     private static readonly MediaTypeHeaderValue JsonApiContentType = new(JsonApiMediaType);
 
-    private LetterService? _letters;
-    private EmailService? _emails;
-    private EbillService? _ebills;
-    private BatchService? _batches;
-    private OrganisationService? _organisations;
-    private UserService? _users;
-    private WebhookService? _webhooks;
-    private FileService? _files;
-
     /// <summary>
     /// The letters of an organisation - physical mail Pingen prints, franks and hands to a postal service.
     /// </summary>
-    public LetterService Letters => _letters ??= new(this);
+    public LetterService Letters => field ??= new(this);
 
     /// <summary>
     /// The email channel, which delivers a document as an email instead of printing it.
     /// </summary>
-    public EmailService Emails => _emails ??= new(this);
+    public EmailService Emails => field ??= new(this);
 
     /// <summary>
     /// The ebill channel, which delivers an invoice into the recipient's e-banking.
     /// </summary>
-    public EbillService Ebills => _ebills ??= new(this);
+    public EbillService Ebills => field ??= new(this);
 
     /// <summary>
     /// The batches of an organisation - one upload split into many deliveries, dispatched through one channel.
     /// </summary>
-    public BatchService Batches => _batches ??= new(this);
+    public BatchService Batches => field ??= new(this);
 
     /// <summary>
     /// The organisations the authenticated user may act for.
     /// </summary>
-    public OrganisationService Organisations => _organisations ??= new(this);
+    public OrganisationService Organisations => field ??= new(this);
 
     /// <summary>
     /// The user the access token was issued for and the organisations it is associated with.
     /// </summary>
-    public UserService Users => _users ??= new(this);
+    public UserService Users => field ??= new(this);
 
     /// <summary>
     /// The webhook subscriptions of an organisation.
     /// </summary>
-    public WebhookService Webhooks => _webhooks ??= new(this);
+    public WebhookService Webhooks => field ??= new(this);
 
     /// <summary>
     /// The file transfer half of the API - presigned upload targets, raw uploads and downloads.
     /// </summary>
-    public FileService Files => _files ??= new(this);
+    public FileService Files => field ??= new(this);
 
     internal HttpClient FileClient => httpClientFactory.CreateClient(FilesClientName);
 
