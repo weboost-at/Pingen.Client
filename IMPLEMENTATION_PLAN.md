@@ -53,8 +53,13 @@ low near the end, so operate under these hard rules:
    (section numbers only) and stop reading sub-agent reports beyond their first 10 lines.
 6. **Sub-agent reports must be small.** Every brief ends with: "Report back ONLY: files created
    (paths), public types added (names only), gate status, deviations from the plan. Max 25 lines."
-7. **One phase = one commit** (occasionally two, see §9). Commit messages follow §12.2 exactly.
-   Commit and push as you go — never batch everything to the end.
+7. **Commit as you go — a requirement, not a preference.** One phase = one commit (occasionally
+   two, see §9), committed and pushed immediately after the phase's gate passes — never batch
+   work up for a big final commit. Every commit message follows §12.2 exactly: that is the repo
+   owner's personal grammar and mimicking it is part of the task. Branching: if your session
+   designates a branch, use it; otherwise either commit directly to `main` or run the ENTIRE
+   implementation on one sensibly named branch in the house convention `feature/<topic>`
+   (e.g. `feature/pingen-client`) — never per-phase branches, never throwaway names.
 8. **Parallelism:** only the pairs 4+5 and 6+7 may run as parallel sub-agents (marked ⫲ in §9);
    their file lists are disjoint by design — `PingenClient.cs` hub properties and
    `PingenConfiguration.cs` service registrations belong to phase 8 alone, so no parallel phase
@@ -92,7 +97,9 @@ Ground rules:
 - **`dotnet pack` fails until `README.md` exists at the repo root** (the csproj packs it). The README
   is a first-class deliverable (§11); a placeholder may already exist uncommitted — replace its content.
 - Never commit `.tmp/`. Never modify the workflows. Do not create a PR unless your session
-  instructions say so. Push to the branch your session designates, `git push -u origin <branch>`.
+  instructions say so. Push to the branch your session designates, `git push -u origin <branch>`;
+  with no designated branch, commit to `main` directly or use a single `feature/<topic>` branch
+  (house convention, e.g. `feature/pingen-client`) for the whole implementation.
 - Root namespace is `Pingen.Client`; namespace always equals folder path (`Pingen.Client.Batches`,
   `Pingen.Client.Deliveries.Letters`, …).
 - Every public member gets a one-sentence XML `<summary>` (the whole library is consumed API —
@@ -884,6 +891,10 @@ code-quality trio: don't defend against states that can't occur; don't duplicate
   - `Added PingenWebhook.cs, signatures verify constant-time against the raw payload bytes`
   - `Updated PingenConfiguration.cs, the files client skips the auth handler since presigned URLs reject Bearer headers`
 - Keep the session's mandated trailers (Co-Authored-By etc.) if your harness requires them.
+- Cadence: commit and push per phase as §1 rule 7 requires — the history should read like the
+  owner built the library feature by feature, not like one code drop.
+- Branches: when the session doesn't dictate one, `main` directly or a single house-style
+  `feature/<topic>` branch (attested in outreach: `feature/products`) for the entire implementation.
 
 ---
 
@@ -962,6 +973,9 @@ Full architecture and wire contracts: IMPLEMENTATION_PLAN.md (sections are numbe
 `<PastTenseVerb> <File.ext>[, <File2.ext> and <File3.ext>], <lowercase behavior clause>` — verbs:
 Added/Updated/Fixed/Refactored/Moved/Dropped; backticked identifiers; rationale with "so"/"since";
 no trailing period. Example: `Added PingenAccessTokens.cs, tokens cache for 12 hours and refresh 60 seconds early`
+
+Commit and push after every coherent unit of work (a phase) — never batch the implementation into
+one drop. If a branch is used at all, it is a single `feature/<topic>` branch for the whole job.
 
 ## Boundaries
 
