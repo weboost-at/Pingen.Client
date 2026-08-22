@@ -1,0 +1,30 @@
+name: spec-sync
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'   # monthly, 1st at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Scheduled Pingen spec sync. You are on a clean checkout of main.
+            Follow tools/SPEC_SYNC.md exactly and end with its report line
+            (or the PR link if drift was reconciled).
+          claude_args: |
+            --allowedTools "Bash,Read,Edit,Write,Glob,Grep"
+            --max-turns 60
