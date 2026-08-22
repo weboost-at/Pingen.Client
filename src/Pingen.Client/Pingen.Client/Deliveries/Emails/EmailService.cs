@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
-using Pingen.Client.Files;
 
 namespace Pingen.Client.Deliveries.Emails;
 
@@ -9,12 +8,8 @@ namespace Pingen.Client.Deliveries.Emails;
 public class EmailService(PingenClient client)
 {
     /// <summary>Lists one page of the organisation's emails.</summary>
-    public async Task<PingenList<Email>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var document = await client.GetAsync<ListDocument<Email>>(Path(organisationId), options, cancellationToken);
-
-        return new(document.Data, document.Links, document.Meta);
-    }
+    public async Task<PingenList<Email>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        (await client.GetAsync<ListDocument<Email>>(Path(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Lists the organisation's emails across page boundaries, fetching the next page as the enumeration reaches it.</summary>
     public async IAsyncEnumerable<Email> ListAutoPagingAsync(
@@ -59,7 +54,7 @@ public class EmailService(PingenClient client)
         if (options.FileUrl is not null || options.FileUrlSignature is not null)
             throw new ArgumentException("The upload overload fills FileUrl and FileUrlSignature from the upload it performs - leave both unset.", nameof(options));
 
-        var upload = await new FileService(client).UploadAsync(content, cancellationToken);
+        var upload = await client.Files.UploadAsync(content, cancellationToken);
 
         return await CreateAsync(
             organisationId,
@@ -87,15 +82,11 @@ public class EmailService(PingenClient client)
 
     /// <summary>Downloads the email's PDF - the caller owns the stream and releases the connection by disposing it.</summary>
     public async Task<Stream> DownloadFileAsync(Guid organisationId, Guid emailId, CancellationToken cancellationToken = default) =>
-        await new FileService(client).DownloadAsync(await GetFileLocationAsync(organisationId, emailId, cancellationToken), cancellationToken);
+        await client.Files.DownloadAsync(await GetFileLocationAsync(organisationId, emailId, cancellationToken), cancellationToken);
 
     /// <summary>Lists one page of the email's events.</summary>
-    public async Task<PingenList<DeliverableEvent>> ListEventsAsync(Guid organisationId, Guid emailId, PingenListOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var document = await client.GetAsync<ListDocument<DeliverableEvent>>($"{Path(organisationId, emailId)}/events", options, cancellationToken);
-
-        return new(document.Data, document.Links, document.Meta);
-    }
+    public async Task<PingenList<DeliverableEvent>> ListEventsAsync(Guid organisationId, Guid emailId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{Path(organisationId, emailId)}/events", options, cancellationToken)).ToList();
 
     /// <summary>Reads the presigned URL of an event's image that the image endpoint answers its redirect with.</summary>
     public Task<Uri> GetEventImageLocationAsync(Guid organisationId, Guid emailId, Guid eventId, CancellationToken cancellationToken = default) =>
@@ -103,7 +94,7 @@ public class EmailService(PingenClient client)
 
     /// <summary>Downloads an event's image - the caller owns the stream and releases the connection by disposing it.</summary>
     public async Task<Stream> DownloadEventImageAsync(Guid organisationId, Guid emailId, Guid eventId, CancellationToken cancellationToken = default) =>
-        await new FileService(client).DownloadAsync(await GetEventImageLocationAsync(organisationId, emailId, eventId, cancellationToken), cancellationToken);
+        await client.Files.DownloadAsync(await GetEventImageLocationAsync(organisationId, emailId, eventId, cancellationToken), cancellationToken);
 
     private static string Path(Guid organisationId) => $"organisations/{organisationId}/deliveries/emails";
 

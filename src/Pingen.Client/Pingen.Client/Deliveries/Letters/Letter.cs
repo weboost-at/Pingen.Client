@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using Pingen.Client.Common.Json;
 using Pingen.Client.Common.JsonApi;
 
 namespace Pingen.Client.Deliveries.Letters;
@@ -133,18 +133,6 @@ public record LetterFont
 
     /// <summary>Whether the font travels inside the PDF - a font that does not is substituted at print time.</summary>
     [JsonPropertyName("is_embedded")]
-    [JsonConverter(typeof(NumericBooleanConverter))]
+    [JsonConverter(typeof(PingenBooleanConverter))]
     public required bool IsEmbedded { get; init; }
-
-    private class NumericBooleanConverter : JsonConverter<bool>
-    {
-        // The spec types the flag as boolean but documents it with a numeric example - both shapes have to land.
-        public override bool Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.TokenType switch
-        {
-            JsonTokenType.Number => reader.GetInt32() is not 0,
-            _ => reader.GetBoolean(),
-        };
-
-        public override void Write(Utf8JsonWriter writer, bool value, JsonSerializerOptions options) => writer.WriteBooleanValue(value);
-    }
 }

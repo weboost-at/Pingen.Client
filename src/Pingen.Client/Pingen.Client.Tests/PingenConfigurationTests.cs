@@ -4,8 +4,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Pingen.Client.Authentication;
+using Pingen.Client.Batches;
+using Pingen.Client.Deliveries.Ebills;
+using Pingen.Client.Deliveries.Emails;
+using Pingen.Client.Deliveries.Letters;
+using Pingen.Client.Files;
 using Pingen.Client.Options;
+using Pingen.Client.Organisations;
 using Pingen.Client.Tests.Tests;
+using Pingen.Client.Users;
+using Pingen.Client.Webhooks;
 
 namespace Pingen.Client.Tests;
 
@@ -66,6 +74,27 @@ public class PingenConfigurationTests
         host.Provider.GetRequiredService<PingenAccessTokens>().Should().BeSameAs(host.Provider.GetRequiredService<PingenAccessTokens>());
         host.Provider.GetRequiredService<PingenAuthenticationHandler>().Should().NotBeNull();
         host.Provider.GetServices<IValidateOptions<PingenOptions>>().Should().ContainItemsAssignableTo<PingenOptionsValidator>();
+    }
+
+    [Fact]
+    public void When_the_container_is_built_every_service_resolves_from_it()
+    {
+        // Arrange
+        using var host = new PingenTestHost();
+
+        // Act
+        var client = host.Provider.GetRequiredService<PingenClient>();
+
+        // Assert
+        host.Provider.GetRequiredService<LetterService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<EmailService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<EbillService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<BatchService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<OrganisationService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<UserService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<WebhookService>().Should().NotBeNull();
+        host.Provider.GetRequiredService<FileService>().Should().NotBeNull();
+        client.Letters.Should().BeSameAs(client.Letters);
     }
 
     [Theory]

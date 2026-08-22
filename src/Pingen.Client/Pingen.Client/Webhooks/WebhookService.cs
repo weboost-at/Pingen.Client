@@ -9,12 +9,8 @@ public class WebhookService(PingenClient client)
     private const string WebhookType = "webhooks";
 
     /// <summary>Lists one page of the organisation's webhooks - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
-    public async Task<PingenList<Webhook>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var document = await client.GetAsync<ListDocument<Webhook>>(WebhooksPath(organisationId), WithoutSort(options), cancellationToken);
-
-        return new(document.Data, document.Links, document.Meta);
-    }
+    public async Task<PingenList<Webhook>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        (await client.GetAsync<ListDocument<Webhook>>(WebhooksPath(organisationId), WithoutSort(options), cancellationToken)).ToList();
 
     /// <summary>Subscribes to a category of events.</summary>
     public async Task<Webhook> CreateAsync(

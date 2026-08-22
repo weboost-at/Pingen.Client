@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
-using Pingen.Client.Files;
 
 namespace Pingen.Client.Batches;
 
@@ -10,11 +9,9 @@ public class BatchService(PingenClient client)
 {
     private const string BatchType = "batches";
 
-    private FileService Files => new(client);
-
     /// <summary>Lists one page of the organisation's batches.</summary>
     public async Task<PingenList<Batch>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        ToList(await client.GetAsync<ListDocument<Batch>>(BatchesPath(organisationId), options, cancellationToken));
+        (await client.GetAsync<ListDocument<Batch>>(BatchesPath(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Enumerates every batch of the organisation, fetching the next page whenever the enumeration runs off the current one.</summary>
     public async IAsyncEnumerable<Batch> ListAutoPagingAsync(
@@ -66,7 +63,7 @@ public class BatchService(PingenClient client)
         if (options.FileUrl is not null || options.FileUrlSignature is not null)
             throw new ArgumentException("This overload uploads the file itself and fills FileUrl and FileUrlSignature - leave both unset.", nameof(options));
 
-        var upload = await Files.UploadAsync(content, cancellationToken);
+        var upload = await client.Files.UploadAsync(content, cancellationToken);
 
         return await CreateAsync(
             organisationId,
@@ -97,18 +94,18 @@ public class BatchService(PingenClient client)
         );
 
     /// <summary>Deletes a batch, taking its letters and deliveries with it as <paramref name="options"/> asks - this endpoint requires the body.</summary>
+    // Pingen honours Idempotency-Key on POST and PATCH only, so no delete takes request options.
     public Task DeleteAsync(
         Guid organisationId,
         Guid batchId,
         BatchDeleteOptions options,
-        PingenRequestOptions? requestOptions = null,
         CancellationToken cancellationToken = default
     ) =>
         client.SendAsync(
             method: HttpMethod.Delete,
             path: BatchPath(organisationId, batchId),
             body: RequestDocument.For(BatchType, options, id: batchId.ToString()),
-            requestOptions: requestOptions,
+            requestOptions: null,
             cancellationToken: cancellationToken
         );
 
@@ -149,7 +146,7 @@ public class BatchService(PingenClient client)
         PingenListOptions? options = null,
         CancellationToken cancellationToken = default
     ) =>
-        ToList(await client.GetAsync<ListDocument<BatchEvent>>($"{BatchPath(organisationId, batchId)}/events", options, cancellationToken));
+        (await client.GetAsync<ListDocument<BatchEvent>>($"{BatchPath(organisationId, batchId)}/events", options, cancellationToken)).ToList();
 
     /// <summary>Fetches how the letters of a batch are distributed across validation groups, countries and regions.</summary>
     public async Task<BatchStatistics> GetStatisticsAsync(Guid organisationId, Guid batchId, CancellationToken cancellationToken = default) =>
@@ -158,11 +155,4 @@ public class BatchService(PingenClient client)
     private static string BatchesPath(Guid organisationId) => $"organisations/{organisationId}/batches";
 
     private static string BatchPath(Guid organisationId, Guid batchId) => $"{BatchesPath(organisationId)}/{batchId}";
-
-    private static PingenList<T> ToList<T>(ListDocument<T> document) =>
-        new(
-            Data: document.Data,
-            Links: document.Links,
-            Meta: document.Meta
-        );
 }

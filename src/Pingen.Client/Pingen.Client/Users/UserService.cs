@@ -14,12 +14,8 @@ public class UserService(PingenClient client)
         (await client.GetAsync<SingleDocument<User>>(Path, cancellationToken)).Data;
 
     /// <summary>Lists one page of the memberships the user holds in organisations.</summary>
-    public async Task<PingenList<Association>> ListAssociationsAsync(PingenListOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var document = await client.GetAsync<ListDocument<Association>>($"{Path}/associations", options, cancellationToken);
-
-        return new(document.Data, document.Links, document.Meta);
-    }
+    public async Task<PingenList<Association>> ListAssociationsAsync(PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        (await client.GetAsync<ListDocument<Association>>($"{Path}/associations", options, cancellationToken)).ToList();
 
     /// <summary>Lists the memberships across page boundaries, fetching the next page as the enumeration reaches it.</summary>
     public async IAsyncEnumerable<Association> ListAssociationsAutoPagingAsync(

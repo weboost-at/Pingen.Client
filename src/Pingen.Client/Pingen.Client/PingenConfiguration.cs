@@ -1,7 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Pingen.Client.Authentication;
+using Pingen.Client.Batches;
+using Pingen.Client.Deliveries.Ebills;
+using Pingen.Client.Deliveries.Emails;
+using Pingen.Client.Deliveries.Letters;
+using Pingen.Client.Files;
 using Pingen.Client.Options;
+using Pingen.Client.Organisations;
+using Pingen.Client.Users;
+using Pingen.Client.Webhooks;
 
 namespace Pingen.Client;
 
@@ -49,6 +57,16 @@ public static class PingenConfiguration
             // The file endpoints answer 302 with the presigned URL in the Location header, which must reach the caller instead of being followed.
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false })
             .AddHttpMessageHandler<PingenAuthenticationHandler>();
+
+        // The services are reachable through the client's hub properties as well - registering them lets a consumer inject just the one it uses.
+        services.AddTransient<LetterService>();
+        services.AddTransient<EmailService>();
+        services.AddTransient<EbillService>();
+        services.AddTransient<BatchService>();
+        services.AddTransient<OrganisationService>();
+        services.AddTransient<UserService>();
+        services.AddTransient<WebhookService>();
+        services.AddTransient<FileService>();
 
         return services;
     }

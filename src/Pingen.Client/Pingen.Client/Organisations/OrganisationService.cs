@@ -10,12 +10,8 @@ public class OrganisationService(PingenClient client)
     private const string Path = "organisations";
 
     /// <summary>Lists one page of the organisations the user may act for.</summary>
-    public async Task<PingenList<Organisation>> ListAsync(PingenListOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var document = await client.GetAsync<ListDocument<Organisation>>(Path, options, cancellationToken);
-
-        return new(document.Data, document.Links, document.Meta);
-    }
+    public async Task<PingenList<Organisation>> ListAsync(PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        (await client.GetAsync<ListDocument<Organisation>>(Path, options, cancellationToken)).ToList();
 
     /// <summary>Lists the organisations across page boundaries, fetching the next page as the enumeration reaches it.</summary>
     public async IAsyncEnumerable<Organisation> ListAutoPagingAsync(
