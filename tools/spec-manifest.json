@@ -1,0 +1,497 @@
+{
+  "specTitle": "Pingen by Pingen GmbH",
+  "specVersion": "2.0.0",
+  "specUrl": "https://api.pingen.com/documentation/swagger-docs",
+  "lastSync": "2026-08-22",
+  "generatedFrom": "sha256:6699b736d1abfd6ae4945c2906cbd2bba2f3d9af65bf2c54e248b11674eacf64",
+  "authDigest": "660617c10420",
+  "emptyPathCount": 180,
+  "operations": [
+    {
+      "id": "batches.cancel",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/batches/{batchId}/cancel",
+      "kind": "operation",
+      "digest": "d780d81c9b4a",
+      "sdk": "BatchService.CancelAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "batches.create",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/batches",
+      "kind": "operation",
+      "digest": "91bea82615e1",
+      "sdk": "BatchService.CreateAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": "The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
+    },
+    {
+      "id": "batches.delete",
+      "method": "DELETE",
+      "path": "/organisations/{organisationId}/batches/{batchId}",
+      "kind": "operation",
+      "digest": "7e4a3ed40f34",
+      "sdk": "BatchService.DeleteAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": "Pingen honours Idempotency-Key on POST and PATCH only, so the delete takes no PingenRequestOptions."
+    },
+    {
+      "id": "batches.edit",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/batches/{batchId}",
+      "kind": "operation",
+      "digest": "2a13b69251e4",
+      "sdk": "BatchService.EditAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": "The attributes schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
+    },
+    {
+      "id": "batches.events",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/batches/{batchId}/events",
+      "kind": "operation",
+      "digest": "8be2720a6503",
+      "sdk": "BatchService.ListEventsAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "batches.list",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/batches",
+      "kind": "operation",
+      "digest": "f4e5a9ff785a",
+      "sdk": "BatchService.ListAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "batches.send",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/batches/{batchId}/send",
+      "kind": "operation",
+      "digest": "75fef3af8417",
+      "sdk": "BatchService.SendAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "batches.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/batches/{batchId}",
+      "kind": "operation",
+      "digest": "7b00f5534ee9",
+      "sdk": "BatchService.GetAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.ebills.cancel",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/cancel",
+      "kind": "operation",
+      "digest": "938f87377eb1",
+      "sdk": "EbillService.CancelAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.ebills.create",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/deliveries/ebills",
+      "kind": "operation",
+      "digest": "c13cfa55e883",
+      "sdk": "EbillService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": "The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
+    },
+    {
+      "id": "deliveries.ebills.delete",
+      "method": "DELETE",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}",
+      "kind": "operation",
+      "digest": "73e045973f1d",
+      "sdk": "EbillService.DeleteAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": "Pingen honours Idempotency-Key on POST and PATCH only, so the delete takes no PingenRequestOptions."
+    },
+    {
+      "id": "deliveries.ebills.events",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/events",
+      "kind": "operation",
+      "digest": "a85615bf7954",
+      "sdk": "EbillService.ListEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.ebills.events.image",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/events/{deliverableEventId}/image",
+      "kind": "operation",
+      "digest": "d1f95bd95f78",
+      "sdk": "EbillService.GetEventImageLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "deliveries.ebills.file",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/file",
+      "kind": "operation",
+      "digest": "740a5f29fd38",
+      "sdk": "EbillService.GetFileLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "deliveries.ebills.list",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/ebills",
+      "kind": "operation",
+      "digest": "0c098535726f",
+      "sdk": "EbillService.ListAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.ebills.send",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/send",
+      "kind": "operation",
+      "digest": "88515bed564a",
+      "sdk": "EbillService.SendAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.ebills.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}",
+      "kind": "operation",
+      "digest": "9d67b186573c",
+      "sdk": "EbillService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.emails.cancel",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}/cancel",
+      "kind": "operation",
+      "digest": "042abca226c2",
+      "sdk": "EmailService.CancelAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.emails.create",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/deliveries/emails",
+      "kind": "operation",
+      "digest": "4428e71642e8",
+      "sdk": "EmailService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": "The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
+    },
+    {
+      "id": "deliveries.emails.delete",
+      "method": "DELETE",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}",
+      "kind": "operation",
+      "digest": "8aeb6182e9af",
+      "sdk": "EmailService.DeleteAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": "Pingen honours Idempotency-Key on POST and PATCH only, so the delete takes no PingenRequestOptions."
+    },
+    {
+      "id": "deliveries.emails.events",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}/events",
+      "kind": "operation",
+      "digest": "a750b6f2bd03",
+      "sdk": "EmailService.ListEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.emails.events.image",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}/events/{deliverableEventId}/image",
+      "kind": "operation",
+      "digest": "0cb8dd049536",
+      "sdk": "EmailService.GetEventImageLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "deliveries.emails.file",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}/file",
+      "kind": "operation",
+      "digest": "d833e7a21117",
+      "sdk": "EmailService.GetFileLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "deliveries.emails.list",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/emails",
+      "kind": "operation",
+      "digest": "065033abb1f2",
+      "sdk": "EmailService.ListAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": null
+    },
+    {
+      "id": "deliveries.emails.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/emails/{emailId}",
+      "kind": "operation",
+      "digest": "6f60ffac83e9",
+      "sdk": "EmailService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
+      "notes": null
+    },
+    {
+      "id": "files.file-upload",
+      "method": "GET",
+      "path": "/file-upload",
+      "kind": "operation",
+      "digest": "e2724c9e6c9d",
+      "sdk": "FileService.RequestUploadAsync — src/Pingen.Client/Pingen.Client/Files/FileService.cs",
+      "notes": "The presigned PUT target the answer carries is outside the spec - FileService uploads raw bytes with a known Content-Length, since a chunked upload answers 501 and a bearer token invalidates the signature."
+    },
+    {
+      "id": "letters.cancel",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/cancel",
+      "kind": "operation",
+      "digest": "2a53be532f99",
+      "sdk": "LetterService.CancelAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": null
+    },
+    {
+      "id": "letters.create",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/deliveries/letters",
+      "kind": "operation",
+      "digest": "e1096ef60b7d",
+      "sdk": "LetterService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "LetterAddress models all seven address fields optional although SendMetaDataRecipientAttributes and SendMetaDataSenderAttributes mark every one of them required, since the field descriptions ask for both the street and the PO box shape and only one of the two can be given. The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
+    },
+    {
+      "id": "letters.delete",
+      "method": "DELETE",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}",
+      "kind": "operation",
+      "digest": "fbdbc3e51d74",
+      "sdk": "LetterService.DeleteAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "Pingen honours Idempotency-Key on POST and PATCH only, so the delete takes no PingenRequestOptions."
+    },
+    {
+      "id": "letters.events",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/events",
+      "kind": "operation",
+      "digest": "4c92bf223d5f",
+      "sdk": "LetterService.ListEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": null
+    },
+    {
+      "id": "letters.events.image",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/events/{letterEventId}/image",
+      "kind": "operation",
+      "digest": "02114bc98c00",
+      "sdk": "LetterService.GetEventImageLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "letters.file",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/file",
+      "kind": "operation",
+      "digest": "93b6a10c132f",
+      "sdk": "LetterService.GetFileLocationAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "components/responses/response302 types the `Location` header as `number` although it carries a presigned URL, which the SDK returns as a `Uri`."
+    },
+    {
+      "id": "letters.list",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters",
+      "kind": "operation",
+      "digest": "614a1c2c461c",
+      "sdk": "LetterService.ListAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "`is_embedded` is typed boolean but documented with the numeric example `1`, so LetterFont reads it through PingenBooleanConverter and accepts both."
+    },
+    {
+      "id": "letters.price-calculator",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/deliveries/letters/price-calculator",
+      "kind": "operation",
+      "digest": "cbb5a82630ec",
+      "sdk": "LetterService.CalculatePriceAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "The documented 202 answer carries no body at all, so CalculatePriceAsync returns null instead of a LetterPrice."
+    },
+    {
+      "id": "letters.send",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/send",
+      "kind": "operation",
+      "digest": "bc3fa0b695a9",
+      "sdk": "LetterService.SendAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "LetterAddress models all seven address fields optional although SendMetaDataRecipientAttributes and SendMetaDataSenderAttributes mark every one of them required, since the field descriptions ask for both the street and the PO box shape and only one of the two can be given."
+    },
+    {
+      "id": "letters.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/{letterId}",
+      "kind": "operation",
+      "digest": "8945d19df6c5",
+      "sdk": "LetterService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "`is_embedded` is typed boolean but documented with the numeric example `1`, so LetterFont reads it through PingenBooleanConverter and accepts both."
+    },
+    {
+      "id": "organisations.batches.statistics.details",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/batches/{batchId}/statistics",
+      "kind": "operation",
+      "digest": "34ec0d44c7e8",
+      "sdk": "BatchService.GetStatisticsAsync — src/Pingen.Client/Pingen.Client/Batches/BatchService.cs",
+      "notes": null
+    },
+    {
+      "id": "organisations.index",
+      "method": "GET",
+      "path": "/organisations",
+      "kind": "operation",
+      "digest": "6ae7c009f30a",
+      "sdk": "OrganisationService.ListAsync — src/Pingen.Client/Pingen.Client/Organisations/OrganisationService.cs",
+      "notes": null
+    },
+    {
+      "id": "organisations.letters.events.delivered",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/events/delivered",
+      "kind": "operation",
+      "digest": "62a77024b081",
+      "sdk": "LetterService.ListDeliveredEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "The endpoint accepts no sort parameter, so the service drops PingenListOptions.Sort through WithoutSort()."
+    },
+    {
+      "id": "organisations.letters.events.issues",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/events/issues",
+      "kind": "operation",
+      "digest": "c187e690af00",
+      "sdk": "LetterService.ListIssueEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "The endpoint accepts no sort parameter, so the service drops PingenListOptions.Sort through WithoutSort()."
+    },
+    {
+      "id": "organisations.letters.events.sent",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/events/sent",
+      "kind": "operation",
+      "digest": "8ba9a9979d94",
+      "sdk": "LetterService.ListSentEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "The endpoint accepts no sort parameter, so the service drops PingenListOptions.Sort through WithoutSort()."
+    },
+    {
+      "id": "organisations.letters.events.undeliverable",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/deliveries/letters/events/undeliverable",
+      "kind": "operation",
+      "digest": "41cc3e386a95",
+      "sdk": "LetterService.ListUndeliverableEventsAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
+      "notes": "The endpoint accepts no sort parameter, so the service drops PingenListOptions.Sort through WithoutSort()."
+    },
+    {
+      "id": "organisations.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}",
+      "kind": "operation",
+      "digest": "022f9dd905c8",
+      "sdk": "OrganisationService.GetAsync — src/Pingen.Client/Pingen.Client/Organisations/OrganisationService.cs",
+      "notes": null
+    },
+    {
+      "id": "user.associations.list",
+      "method": "GET",
+      "path": "/user/associations",
+      "kind": "operation",
+      "digest": "858c2208a957",
+      "sdk": "UserService.ListAssociationsAsync — src/Pingen.Client/Pingen.Client/Users/UserService.cs",
+      "notes": "The endpoint needs the `user` scope, which components.securitySchemes omits."
+    },
+    {
+      "id": "users.show",
+      "method": "GET",
+      "path": "/user",
+      "kind": "operation",
+      "digest": "1234dfbc407f",
+      "sdk": "UserService.GetAsync — src/Pingen.Client/Pingen.Client/Users/UserService.cs",
+      "notes": "The endpoint needs the `user` scope, which components.securitySchemes omits."
+    },
+    {
+      "id": "webhooks.create",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/webhooks",
+      "kind": "operation",
+      "digest": "5cc68e3f6a49",
+      "sdk": "WebhookService.CreateAsync — src/Pingen.Client/Pingen.Client/Webhooks/WebhookService.cs",
+      "notes": null
+    },
+    {
+      "id": "webhooks.destroy",
+      "method": "DELETE",
+      "path": "/organisations/{organisationId}/webhooks/{webhookId}",
+      "kind": "operation",
+      "digest": "a51df21a104f",
+      "sdk": "WebhookService.DeleteAsync — src/Pingen.Client/Pingen.Client/Webhooks/WebhookService.cs",
+      "notes": "Pingen honours Idempotency-Key on POST and PATCH only, so the delete takes no PingenRequestOptions."
+    },
+    {
+      "id": "webhooks.index",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/webhooks",
+      "kind": "operation",
+      "digest": "84949ed751d7",
+      "sdk": "WebhookService.ListAsync — src/Pingen.Client/Pingen.Client/Webhooks/WebhookService.cs",
+      "notes": "The endpoint accepts no sort parameter, so the service drops PingenListOptions.Sort through WithoutSort()."
+    },
+    {
+      "id": "webhooks.payload.channel-subscriptions",
+      "method": "POST",
+      "path": "/your-webhook-url-for-channel-subscriptions",
+      "kind": "webhook-payload",
+      "digest": "39789c895b9c",
+      "sdk": "WebhookChannelSubscriptionEvent — src/Pingen.Client/Pingen.Client/Webhooks/Payloads/WebhookChannelSubscriptionEvent.cs",
+      "notes": null
+    },
+    {
+      "id": "webhooks.payload.delivered",
+      "method": "POST",
+      "path": "/your-webhook-url-for-delivered",
+      "kind": "webhook-payload",
+      "digest": "d40e75f68991",
+      "sdk": "WebhookDeliveredEvent — src/Pingen.Client/Pingen.Client/Webhooks/Payloads/WebhookDeliveredEvent.cs",
+      "notes": null
+    },
+    {
+      "id": "webhooks.payload.dispatched",
+      "method": "POST",
+      "path": "/your-webhook-url-for-dispatched",
+      "kind": "webhook-payload",
+      "digest": "6a117d47336b",
+      "sdk": "WebhookSentEvent — src/Pingen.Client/Pingen.Client/Webhooks/Payloads/WebhookSentEvent.cs",
+      "notes": "The spec names the path `dispatched` while the payload type and the subscribed category are `sent`."
+    },
+    {
+      "id": "webhooks.payload.issues",
+      "method": "POST",
+      "path": "/your-webhook-url-for-issues",
+      "kind": "webhook-payload",
+      "digest": "7378ac62e2f7",
+      "sdk": "WebhookIssueEvent — src/Pingen.Client/Pingen.Client/Webhooks/Payloads/WebhookIssueEvent.cs",
+      "notes": null
+    },
+    {
+      "id": "webhooks.payload.undeliverable",
+      "method": "POST",
+      "path": "/your-webhook-url-for-undeliverable",
+      "kind": "webhook-payload",
+      "digest": "c1a3b1b3e058",
+      "sdk": "WebhookUndeliverableEvent — src/Pingen.Client/Pingen.Client/Webhooks/Payloads/WebhookUndeliverableEvent.cs",
+      "notes": null
+    },
+    {
+      "id": "webhooks.show",
+      "method": "GET",
+      "path": "/organisations/{organisationId}/webhooks/{webhookId}",
+      "kind": "operation",
+      "digest": "1dc661b53c3d",
+      "sdk": "WebhookService.GetAsync — src/Pingen.Client/Pingen.Client/Webhooks/WebhookService.cs",
+      "notes": null
+    }
+  ]
+}
