@@ -10,7 +10,7 @@ public class WebhookService(PingenClient client)
 
     /// <summary>Lists one page of the organisation's webhooks - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
     public async Task<PingenList<Webhook>> ListAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        (await client.GetAsync<ListDocument<Webhook>>(WebhooksPath(organisationId), WithoutSort(options), cancellationToken)).ToList();
+        (await client.GetAsync<ListDocument<Webhook>>(WebhooksPath(organisationId), options.WithoutSort(), cancellationToken)).ToList();
 
     /// <summary>Subscribes to a category of events.</summary>
     public async Task<Webhook> CreateAsync(
@@ -46,6 +46,4 @@ public class WebhookService(PingenClient client)
         );
 
     private static string WebhooksPath(Guid organisationId) => $"organisations/{organisationId}/webhooks";
-
-    private static PingenListOptions? WithoutSort(PingenListOptions? options) => options is null ? null : options with { Sort = null };
 }

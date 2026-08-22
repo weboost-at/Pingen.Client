@@ -12,7 +12,7 @@ public class FileService(PingenClient client)
     /// <summary>Writes <paramref name="content"/> to a presigned upload target as raw bytes - never multipart, never authenticated, since a bearer token invalidates the presigned signature.</summary>
     public async Task UploadAsync(FileUpload target, Stream content, CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Put, target.Attributes.Url) { Content = new StreamContent(content) };
+        using var request = new HttpRequestMessage(HttpMethod.Put, target.Attributes.Url) { Content = await MeasuredAsync(content, cancellationToken) };
         using var response = await client.FileClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode) throw await PingenClient.ToExceptionAsync(response, cancellationToken);
     }
@@ -35,5 +35,16 @@ public class FileService(PingenClient client)
         if (response.IsSuccessStatusCode) return await response.Content.ReadAsStreamAsync(cancellationToken);
 
         using (response) throw await PingenClient.ToExceptionAsync(response, cancellationToken);
+    }
+
+    // A presigned target answers 501 to a chunked upload, and a stream that cannot report its length goes out chunked - buffer it so Content-Length is known.
+    private static async Task<HttpContent> MeasuredAsync(Stream content, CancellationToken cancellationToken)
+    {
+        if (content.CanSeek) return new StreamContent(content);
+
+        var buffer = new MemoryStream();
+        await content.CopyToAsync(buffer, cancellationToken);
+
+        return new ByteArrayContent(buffer.GetBuffer(), 0, (int)buffer.Length);
     }
 }

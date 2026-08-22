@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +15,9 @@ public class RecordingHandler : HttpMessageHandler
 
     /// <summary>The only request that reached this handler.</summary>
     public RecordedRequest Request => Requests.Single();
+
+    /// <summary>A hook awaited after a request is recorded and before it is answered, for tests that act while a call is in flight.</summary>
+    public Func<RecordedRequest, Task>? OnRequest { get; set; }
 
     /// <summary>Queues <paramref name="response"/> as the answer to the next request.</summary>
     public RecordingHandler Enqueue(HttpResponseMessage response)
@@ -48,16 +52,23 @@ public class RecordingHandler : HttpMessageHandler
         Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
         foreach (var (name, values) in request.Headers) headers[name] = string.Join(", ", values);
         if (request.Content is { } content)
-            foreach (var (name, values) in content.Headers)
-                headers[name] = string.Join(", ", values);
+        {
+            // Content-Length is computed on first read and only then joins the header collection - a content that cannot report one goes out chunked.
+            if (content.Headers.ContentLength is { } length) headers["Content-Length"] = length.ToString(CultureInfo.InvariantCulture);
+
+            foreach (var (name, values) in content.Headers) headers[name] = string.Join(", ", values);
+        }
 
         byte[] body = request.Content is null ? [] : await request.Content.ReadAsByteArrayAsync(cancellationToken);
-        Requests.Add(new(
+        var recorded = new RecordedRequest(
             Method: request.Method,
             Url: request.RequestUri!,
             Headers: headers,
             Body: body
-        ));
+        );
+        Requests.Add(recorded);
+
+        if (OnRequest is { } hook) await hook(recorded);
 
         if (_responses.Count is 0) throw new InvalidOperationException($"No response was queued for {request.Method} {request.RequestUri}.");
 

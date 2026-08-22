@@ -92,6 +92,38 @@ public class PingenAccessTokensTests
     }
 
     [Fact]
+    public async Task When_Invalidate_runs_while_a_refresh_is_in_flight_GetAsync_does_not_cache_the_token_it_was_waiting_for()
+    {
+        // Arrange
+        using var host = new PingenTestHost();
+        host.Identity.Clear();
+        host.EnqueueToken("rejected").EnqueueToken("fresh");
+        var tokens = Tokens(host);
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        host.Identity.OnRequest = async _ =>
+        {
+            if (host.Identity.Requests.Count is not 1) return;
+
+            started.SetResult();
+            await release.Task;
+        };
+
+        // Act
+        var inflight = tokens.GetAsync(TestContext.Current.CancellationToken);
+        await started.Task;
+        tokens.Invalidate();
+        release.SetResult();
+        var stale = await inflight;
+        var refreshed = await tokens.GetAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        stale.Should().Be("rejected");
+        refreshed.Should().Be("fresh");
+        host.Identity.Requests.Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task When_the_identity_host_rejects_the_credentials_GetAsync_throws_a_PingenException()
     {
         // Arrange

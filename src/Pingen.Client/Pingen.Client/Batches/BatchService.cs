@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
 
@@ -14,23 +13,8 @@ public class BatchService(PingenClient client)
         (await client.GetAsync<ListDocument<Batch>>(BatchesPath(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Enumerates every batch of the organisation, fetching the next page whenever the enumeration runs off the current one.</summary>
-    public async IAsyncEnumerable<Batch> ListAutoPagingAsync(
-        Guid organisationId,
-        PingenListOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        var page = options ?? new();
-        while (true)
-        {
-            var document = await client.GetAsync<ListDocument<Batch>>(BatchesPath(organisationId), page, cancellationToken);
-            foreach (var batch in document.Data) yield return batch;
-
-            if (document.Data.Count is 0 || document.Meta is not { } meta || meta.CurrentPage >= meta.LastPage) yield break;
-
-            page = page with { PageNumber = meta.CurrentPage + 1 };
-        }
-    }
+    public IAsyncEnumerable<Batch> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
     /// <summary>Creates a batch from an archive or merged PDF that was already uploaded, which requires <see cref="BatchCreateOptions.FileUrl"/> and <see cref="BatchCreateOptions.FileUrlSignature"/> to be set.</summary>
     public async Task<Batch> CreateAsync(

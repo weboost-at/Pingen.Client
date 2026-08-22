@@ -71,6 +71,43 @@ public class PingenClientTests
     }
 
     [Fact]
+    public async Task When_a_payload_was_asked_for_but_the_body_is_empty_SendAsync_throws_instead_of_answering_with_null()
+    {
+        // Arrange
+        using var host = new PingenTestHost();
+        host.Api.EnqueueEmpty();
+
+        // Act
+        var act = () => host.Client.SendAsync<JsonElement>(HttpMethod.Post, "organisations/1/letters", null, null, TestContext.Current.CancellationToken);
+
+        // Assert
+        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
+        exception.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        exception.Errors.Should().ContainSingle().Which.Title.Should().Be("The response carried no payload");
+    }
+
+    [Fact]
+    public async Task When_the_endpoint_may_skip_the_payload_SendOrDefaultAsync_returns_null_for_an_empty_body()
+    {
+        // Arrange
+        using var host = new PingenTestHost();
+        host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+
+        // Act
+        var document = await host.Client.SendOrDefaultAsync<string>(
+            HttpMethod.Post,
+            "organisations/1/letters/price-calculator",
+            null,
+            null,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        document.Should().BeNull();
+        host.Api.Request.Method.Should().Be(HttpMethod.Post);
+    }
+
+    [Fact]
     public async Task When_the_api_answers_an_error_document_the_request_throws_a_PingenException_carrying_it()
     {
         // Arrange

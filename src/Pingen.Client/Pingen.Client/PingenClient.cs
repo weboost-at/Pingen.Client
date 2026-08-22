@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Pingen.Client.Batches;
 using Pingen.Client.Common;
@@ -11,6 +12,9 @@ using Pingen.Client.Files;
 using Pingen.Client.Organisations;
 using Pingen.Client.Users;
 using Pingen.Client.Webhooks;
+
+// The request core below is the one internal surface of the library, and the tests drive it directly.
+[assembly: InternalsVisibleTo("Pingen.Client.Tests")]
 
 namespace Pingen.Client;
 
@@ -74,10 +78,20 @@ public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFa
         using var response = await SendCoreAsync(method, path, body, requestOptions, cancellationToken);
         var payload = await response.Content.ReadAsByteArrayAsync(cancellationToken);
 
-        // Accepted answers such as the price calculator's carry no body at all - there is nothing to map, so callers of those endpoints ask for a nullable T.
-        if (payload.Length is 0) return default!;
+        // A caller asking for T was promised a resource - handing back a null through that non-nullable return would only fail further from here.
+        if (payload.Length is 0) throw Unanswered(method, path, response);
 
         return JsonSerializer.Deserialize<T>(payload, PingenJson.Options)!;
+    }
+
+    // Accepted answers such as the price calculator's carry no body at all - the endpoints that may skip the payload ask for it through this method.
+    internal async Task<T?> SendOrDefaultAsync<T>(HttpMethod method, string path, object? body, PingenRequestOptions? requestOptions, CancellationToken cancellationToken)
+        where T : class
+    {
+        using var response = await SendCoreAsync(method, path, body, requestOptions, cancellationToken);
+        var payload = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+
+        return payload.Length is 0 ? null : JsonSerializer.Deserialize<T>(payload, PingenJson.Options);
     }
 
     internal async Task SendAsync(HttpMethod method, string path, object? body, PingenRequestOptions? requestOptions, CancellationToken cancellationToken)
@@ -100,9 +114,19 @@ public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFa
         new(
             statusCode: response.StatusCode,
             errors: await ReadErrorsAsync(response, cancellationToken),
-            requestId: response.Headers.TryGetValues("X-Request-Id", out var requestIds) ? requestIds.FirstOrDefault() : null,
+            requestId: RequestId(response),
             retryAfter: response.Headers.RetryAfter?.Delta
         );
+
+    private static PingenException Unanswered(HttpMethod method, string path, HttpResponseMessage response) =>
+        new(
+            statusCode: response.StatusCode,
+            errors: [new() { Title = "The response carried no payload", Detail = $"{method} {path} answered {(int)response.StatusCode} with an empty body where a resource was expected." }],
+            requestId: RequestId(response)
+        );
+
+    private static string? RequestId(HttpResponseMessage response) =>
+        response.Headers.TryGetValues("X-Request-Id", out var requestIds) ? requestIds.FirstOrDefault() : null;
 
     private async Task<HttpResponseMessage> SendCoreAsync(HttpMethod method, string path, object? body, PingenRequestOptions? requestOptions, CancellationToken cancellationToken)
     {

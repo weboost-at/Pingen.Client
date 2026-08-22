@@ -221,6 +221,34 @@ public class PingenWebhookTests
         PingenWebhook.ParseEvent(payload).Should().BeOfType<WebhookSentEvent>().Which.Deliverable!.Data!.Type.Should().Be("letters");
     }
 
+    [Theory]
+    [InlineData("""{"meta":{}}""")]
+    [InlineData("""{"data":{"type":"webhook_sent","attributes":{}}}""")]
+    [InlineData("""{"data":{"id":"0a1b2c3d-9999-4000-8000-000000000009","type":"webhook_sent"}}""")]
+    [InlineData("""{"data":{"id":"not-a-guid","type":"webhook_sent","attributes":{}}}""")]
+    [InlineData("not json at all")]
+    public void When_the_payload_is_malformed_ParseEvent_throws_a_PingenException(string payload)
+    {
+        // Act
+        var act = () => PingenWebhook.ParseEvent(payload);
+
+        // Assert
+        act.Should().Throw<PingenException>().Which.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public void When_a_signed_payload_is_malformed_ConstructEvent_rejects_it_rather_than_letting_a_json_error_out()
+    {
+        // Arrange
+        var payload = """{"data":{"type":"webhook_sent","attributes":{}}}""";
+
+        // Act
+        var act = () => PingenWebhook.ConstructEvent(payload, Sign(payload), SigningKey);
+
+        // Assert
+        act.Should().Throw<PingenException>().Which.Errors.Should().ContainSingle().Which.Title.Should().Be("The webhook payload was rejected");
+    }
+
     [Fact]
     public void When_the_payload_carries_an_unknown_type_ConstructEvent_throws_naming_it()
     {

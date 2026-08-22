@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
 
@@ -14,24 +13,8 @@ public class OrganisationService(PingenClient client)
         (await client.GetAsync<ListDocument<Organisation>>(Path, options, cancellationToken)).ToList();
 
     /// <summary>Lists the organisations across page boundaries, fetching the next page as the enumeration reaches it.</summary>
-    public async IAsyncEnumerable<Organisation> ListAutoPagingAsync(
-        PingenListOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        var page = options ?? new();
-        while (true)
-        {
-            var current = await ListAsync(page, cancellationToken);
-            if (current.Count is 0) yield break;
-
-            foreach (var organisation in current) yield return organisation;
-
-            if (current.Meta is not { } meta || meta.CurrentPage >= meta.LastPage) yield break;
-
-            page = page with { PageNumber = meta.CurrentPage + 1 };
-        }
-    }
+    public IAsyncEnumerable<Organisation> ListAutoPagingAsync(PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        PingenPaging.EnumerateAsync(ListAsync, options, cancellationToken);
 
     /// <summary>Fetches a single organisation.</summary>
     public async Task<Organisation> GetAsync(Guid organisationId, CancellationToken cancellationToken = default) =>

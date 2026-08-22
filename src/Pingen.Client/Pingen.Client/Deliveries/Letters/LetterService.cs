@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
 
@@ -16,23 +15,8 @@ public class LetterService(PingenClient client)
         (await client.GetAsync<ListDocument<Letter>>(LettersPath(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Enumerates every letter of the organisation, fetching the next page whenever the enumeration runs off the current one.</summary>
-    public async IAsyncEnumerable<Letter> ListAutoPagingAsync(
-        Guid organisationId,
-        PingenListOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        var page = options ?? new();
-        while (true)
-        {
-            var document = await client.GetAsync<ListDocument<Letter>>(LettersPath(organisationId), page, cancellationToken);
-            foreach (var letter in document.Data) yield return letter;
-
-            if (document.Data.Count is 0 || document.Meta is not { } meta || meta.CurrentPage >= meta.LastPage) yield break;
-
-            page = page with { PageNumber = meta.CurrentPage + 1 };
-        }
-    }
+    public IAsyncEnumerable<Letter> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
     /// <summary>Creates a letter from a PDF that was already uploaded, which requires <see cref="LetterCreateOptions.FileUrl"/> and <see cref="LetterCreateOptions.FileUrlSignature"/> to be set.</summary>
     public async Task<Letter> CreateAsync(
@@ -146,19 +130,19 @@ public class LetterService(PingenClient client)
 
     /// <summary>Lists one page of the sent events of every letter of the organisation - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
     public async Task<PingenList<DeliverableEvent>> ListSentEventsAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/sent", WithoutSort(options), cancellationToken)).ToList();
+        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/sent", options.WithoutSort(), cancellationToken)).ToList();
 
     /// <summary>Lists one page of the delivered events of every letter of the organisation - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
     public async Task<PingenList<DeliverableEvent>> ListDeliveredEventsAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/delivered", WithoutSort(options), cancellationToken)).ToList();
+        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/delivered", options.WithoutSort(), cancellationToken)).ToList();
 
     /// <summary>Lists one page of the issue events of every letter of the organisation - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
     public async Task<PingenList<DeliverableEvent>> ListIssueEventsAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/issues", WithoutSort(options), cancellationToken)).ToList();
+        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/issues", options.WithoutSort(), cancellationToken)).ToList();
 
     /// <summary>Lists one page of the undeliverable events of every letter of the organisation - this endpoint does not sort, so <see cref="PingenListOptions.Sort"/> is ignored.</summary>
     public async Task<PingenList<DeliverableEvent>> ListUndeliverableEventsAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
-        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/undeliverable", WithoutSort(options), cancellationToken)).ToList();
+        (await client.GetAsync<ListDocument<DeliverableEvent>>($"{LettersPath(organisationId)}/events/undeliverable", options.WithoutSort(), cancellationToken)).ToList();
 
     /// <summary>Calculates what a letter of the given shape would cost, returning <c>null</c> when Pingen accepts the request without a price because the calculation is still running.</summary>
     public async Task<LetterPrice?> CalculatePriceAsync(
@@ -169,7 +153,7 @@ public class LetterService(PingenClient client)
     )
     {
         // The documented 202 answer carries no body at all, which the request core maps to null - there is no price yet.
-        var document = await client.SendAsync<SingleDocument<LetterPrice>?>(
+        var document = await client.SendOrDefaultAsync<SingleDocument<LetterPrice>>(
             method: HttpMethod.Post,
             path: $"{LettersPath(organisationId)}/price-calculator",
             body: RequestDocument.For(PriceCalculatorType, options),
@@ -183,6 +167,4 @@ public class LetterService(PingenClient client)
     private static string LettersPath(Guid organisationId) => $"organisations/{organisationId}/deliveries/letters";
 
     private static string LetterPath(Guid organisationId, Guid letterId) => $"{LettersPath(organisationId)}/{letterId}";
-
-    private static PingenListOptions? WithoutSort(PingenListOptions? options) => options is null ? null : options with { Sort = null };
 }

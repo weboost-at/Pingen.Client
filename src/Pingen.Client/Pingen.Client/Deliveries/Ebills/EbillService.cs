@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
 
@@ -12,25 +11,8 @@ public class EbillService(PingenClient client)
         (await client.GetAsync<ListDocument<Ebill>>(Path(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Lists the organisation's ebills across page boundaries, fetching the next page as the enumeration reaches it.</summary>
-    public async IAsyncEnumerable<Ebill> ListAutoPagingAsync(
-        Guid organisationId,
-        PingenListOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        var page = options ?? new();
-        while (true)
-        {
-            var current = await ListAsync(organisationId, page, cancellationToken);
-            if (current.Count is 0) yield break;
-
-            foreach (var ebill in current) yield return ebill;
-
-            if (current.Meta is not { } meta || meta.CurrentPage >= meta.LastPage) yield break;
-
-            page = page with { PageNumber = meta.CurrentPage + 1 };
-        }
-    }
+    public IAsyncEnumerable<Ebill> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
     /// <summary>Creates an ebill from a PDF already uploaded to a presigned URL.</summary>
     public async Task<Ebill> CreateAsync(Guid organisationId, EbillCreateOptions options, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>

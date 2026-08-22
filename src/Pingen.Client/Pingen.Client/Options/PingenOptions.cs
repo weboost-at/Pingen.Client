@@ -1,6 +1,7 @@
 namespace Pingen.Client.Options;
 
 /// <summary>Credentials and hosts the Pingen client is configured with, bound from the <c>Pingen</c> configuration section.</summary>
+// Settable rather than init-only - AddPingen(configure) hands the delegate an already built instance, where an init accessor cannot be assigned (CS8852).
 public class PingenOptions
 {
     /// <summary>The OAuth client id of the Pingen API client.</summary>

@@ -32,8 +32,33 @@ public static class PingenWebhook
             ? ParseEvent(payload)
             : throw Rejected("The signature does not match the payload - it was not signed with this webhook's key or the body was altered on the way.");
 
-    /// <summary>Parses a payload whose origin is already established, without verifying its signature.</summary>
+    /// <summary>Parses a payload whose origin is already established, without verifying its signature, throwing a <see cref="PingenException"/> when it is not a webhook event document.</summary>
     public static WebhookEvent ParseEvent(string payload)
+    {
+        try
+        {
+            return Read(payload);
+        }
+        catch (Exception exception) when (exception is JsonException or KeyNotFoundException or FormatException or InvalidOperationException)
+        {
+            throw Rejected($"The payload is not a webhook event document - {exception.Message}");
+        }
+    }
+
+    /// <summary>Recomputes the HMAC-SHA256 of the payload with <paramref name="signingKey"/> and compares it with the signature the request arrived with.</summary>
+    public static bool VerifySignature(string payload, string signatureHeader, string signingKey)
+    {
+        // Hashed over the bytes as they arrived - re-serializing the payload would change them and break every signature.
+        var expected = HMACSHA256.HashData(Encoding.UTF8.GetBytes(signingKey), Encoding.UTF8.GetBytes(payload));
+        Span<byte> signature = stackalloc byte[expected.Length];
+
+        // Constant-time - a byte-by-byte comparison leaks how much of a forged signature was already right.
+        return Convert.FromHexString(signatureHeader, signature, out _, out var written) is OperationStatus.Done
+            && written == expected.Length
+            && CryptographicOperations.FixedTimeEquals(signature, expected);
+    }
+
+    private static WebhookEvent Read(string payload)
     {
         using var document = JsonDocument.Parse(payload);
         var data = document.RootElement.GetProperty("data");
@@ -61,21 +86,8 @@ public static class PingenWebhook
         };
     }
 
-    /// <summary>Recomputes the HMAC-SHA256 of the payload with <paramref name="signingKey"/> and compares it with the signature the request arrived with.</summary>
-    public static bool VerifySignature(string payload, string signatureHeader, string signingKey)
-    {
-        // Hashed over the bytes as they arrived - re-serializing the payload would change them and break every signature.
-        var expected = HMACSHA256.HashData(Encoding.UTF8.GetBytes(signingKey), Encoding.UTF8.GetBytes(payload));
-        Span<byte> signature = stackalloc byte[expected.Length];
-
-        // Constant-time - a byte-by-byte comparison leaks how much of a forged signature was already right.
-        return Convert.FromHexString(signatureHeader, signature, out _, out var written) is OperationStatus.Done
-            && written == expected.Length
-            && CryptographicOperations.FixedTimeEquals(signature, expected);
-    }
-
     private static T ReadAttributes<T>(JsonElement data) where T : WebhookEvent =>
-        data.GetProperty("attributes").Deserialize<T>(PingenJson.Options)!;
+        data.GetProperty("attributes").Deserialize<T>(PingenJson.Options) ?? throw Rejected("The payload carries no attributes.");
 
     private static Relationship? Related(JsonElement data, string name) =>
         data.TryGetProperty("relationships", out var relationships) && relationships.TryGetProperty(name, out var related)

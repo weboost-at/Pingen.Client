@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Pingen.Client.Common;
 using Pingen.Client.Common.JsonApi;
 
@@ -12,25 +11,8 @@ public class EmailService(PingenClient client)
         (await client.GetAsync<ListDocument<Email>>(Path(organisationId), options, cancellationToken)).ToList();
 
     /// <summary>Lists the organisation's emails across page boundaries, fetching the next page as the enumeration reaches it.</summary>
-    public async IAsyncEnumerable<Email> ListAutoPagingAsync(
-        Guid organisationId,
-        PingenListOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        var page = options ?? new();
-        while (true)
-        {
-            var current = await ListAsync(organisationId, page, cancellationToken);
-            if (current.Count is 0) yield break;
-
-            foreach (var email in current) yield return email;
-
-            if (current.Meta is not { } meta || meta.CurrentPage >= meta.LastPage) yield break;
-
-            page = page with { PageNumber = meta.CurrentPage + 1 };
-        }
-    }
+    public IAsyncEnumerable<Email> ListAutoPagingAsync(Guid organisationId, PingenListOptions? options = null, CancellationToken cancellationToken = default) =>
+        PingenPaging.EnumerateAsync((page, token) => ListAsync(organisationId, page, token), options, cancellationToken);
 
     /// <summary>Creates an email from a PDF already uploaded to a presigned URL.</summary>
     public async Task<Email> CreateAsync(Guid organisationId, EmailCreateOptions options, PingenRequestOptions? requestOptions = null, CancellationToken cancellationToken = default) =>
