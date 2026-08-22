@@ -39,7 +39,7 @@ low near the end, so operate under these hard rules:
    (Agent tool / Task tool with `general-purpose` type, or this harness's equivalent). You only:
    read this plan once, dispatch briefs, run build/test gates, review summaries, commit, and keep tally.
 2. **Sub-agents read; you don't.** Each brief tells the sub-agent to read the sections of this plan
-   it needs (`IMPLEMENTATION_PLAN.md` §N) plus `CLAUDE.md` — do NOT paste plan content into prompts.
+   it needs (`.tmp/IMPLEMENTATION_PLAN.md` §N) plus `CLAUDE.md` — do NOT paste plan content into prompts.
    A brief should be ≤ 30 lines: phase goal, plan sections to read, files to create, definition of done.
 3. **Never read generated source files back into your context.** Trust the build gate. After each
    phase run `dotnet build` and `dotnet test` on `src/Pingen.Client/Pingen.Client.sln` and read only
@@ -80,7 +80,7 @@ Pingen.Client/                          # repo root
 ├── .github/workflows/release.yml       # tag-driven NuGet publish — DO NOT TOUCH
 ├── .gitignore                          # includes .tmp/
 ├── .tmp/swagger-docs.json              # spec, gitignored, reference only
-├── IMPLEMENTATION_PLAN.md              # this file
+├── .tmp/IMPLEMENTATION_PLAN.md         # this file — gitignored working document, NEVER commit it
 └── src/Pingen.Client/
     ├── Pingen.Client.sln
     ├── Directory.Build.props           # MinVer tag prefix v, IsPackable=false default
@@ -100,6 +100,11 @@ Ground rules:
   instructions say so. Push to the branch your session designates, `git push -u origin <branch>`;
   with no designated branch, commit to `main` directly or use a single `feature/<topic>` branch
   (house convention, e.g. `feature/pingen-client`) for the whole implementation.
+- This plan is a working document that must NEVER enter `main`'s history: it lives at
+  `.tmp/IMPLEMENTATION_PLAN.md` (gitignored, placed in the workspace before you start — if it is
+  missing, fetch it from the disposable planning branch:
+  `git fetch origin claude/happy-hypatia-a297k6 && git show FETCH_HEAD:IMPLEMENTATION_PLAN.md > .tmp/IMPLEMENTATION_PLAN.md`).
+  Base all work on `main` — never branch from, merge, or cherry-pick the planning branch.
 - Root namespace is `Pingen.Client`; namespace always equals folder path (`Pingen.Client.Batches`,
   `Pingen.Client.Deliveries.Letters`, …).
 - Every public member gets a one-sentence XML `<summary>` (the whole library is consumed API —
@@ -735,7 +740,7 @@ compile-time dependencies; ⫲ marks phases that may run in parallel with the pr
 
 | Phase | Scope (files per §5) | Plan sections | Notes |
 |---|---|---|---|
-| **0** | Orchestrator does directly: (a) verify the .NET 10 SDK — `dotnet --version`; if missing, install it first (`dotnet-install.sh --channel 10.0` into `$HOME/.dotnet`, export `PATH`/`DOTNET_ROOT`, mind any HTTPS proxy); (b) create `CLAUDE.md` from Appendix A verbatim; (c) add package refs (§2 table); (d) migrate the test csproj to xunit.v3: swap `xunit` → `xunit.v3`, **add `<OutputType>Exe</OutputType>`** (v3 test projects are executables), keep `Microsoft.NET.Test.Sdk`, `xunit.runner.visualstudio` and `coverlet.collector` as-is (VSTest mode); (e) `dotnet build` gate. | §2 | 1 commit |
+| **0** | Orchestrator does directly: (a) verify the .NET 10 SDK — `dotnet --version`; if missing, install it first (`dotnet-install.sh --channel 10.0` into `$HOME/.dotnet`, export `PATH`/`DOTNET_ROOT`, mind any HTTPS proxy); (b) add a `.tmp/` entry to `.gitignore` (`main` lacks it) so this plan and the spec can never be committed; (c) create `CLAUDE.md` from Appendix A verbatim; (d) add package refs (§2 table); (e) migrate the test csproj to xunit.v3: swap `xunit` → `xunit.v3`, **add `<OutputType>Exe</OutputType>`** (v3 test projects are executables), keep `Microsoft.NET.Test.Sdk`, `xunit.runner.visualstudio` and `coverlet.collector` as-is (VSTest mode); (f) `dotnet build` gate. | §2 | 1 commit |
 | **1** | `Common/**` (Json, JsonApi, PingenList, PingenListOptions, PingenFilter, PingenRequestOptions, PingenError, PingenException) + unit tests | §4, §6.2 (query builder + PingenFilter), §8 (error body), §10 | The serialization bedrock. Include the DateTimeOffset converter edge cases in tests. |
 | **2** | `Options/**`, `Authentication/**`, `PingenConfiguration.cs` (everything except service registrations), `PingenClient.cs` (request core only — no hub properties yet) **plus the shared test infra `Tests/RecordingHandler.cs` + `Tests/PingenTestHost.cs`** + tests | §3, §4 (auth/hosts/headers), §6.1 incl. ownership note, §6.2, §10 | Token caching, 401-retry-once, AllowAutoRedirect=false, DI binding test. |
 | **3** | `Files/**`, `Deliveries/ValueTypes/**`, `Deliveries/DeliverableEvent.cs` + tests | §4 (file flows), §6.3, §8 | Unblocks all create flows. |
@@ -752,7 +757,7 @@ compile-time dependencies; ⫲ marks phases that may run in parallel with the pr
 ```
 You are implementing phase N of Pingen.Client. Read, in this order:
   1. CLAUDE.md (repo root) — binding style rules
-  2. IMPLEMENTATION_PLAN.md sections §4, §<...> — your contract
+  2. .tmp/IMPLEMENTATION_PLAN.md sections §4, §<...> — your contract
 Create exactly these files: <list from §5>.
 Definition of done: files exist, `dotnet build src/Pingen.Client/Pingen.Client.sln` and
 `dotnet test` pass including your new tests listed in §10 for this phase.
@@ -925,7 +930,7 @@ code-quality trio: don't defend against states that can't occur; don't duplicate
 # Pingen.Client — house rules
 
 .NET client library for the Pingen v2 API. net10.0, nullable enabled, DI-native, no framework coupling.
-Full architecture and wire contracts: IMPLEMENTATION_PLAN.md (sections are numbered — read what your task names).
+Full architecture and wire contracts: .tmp/IMPLEMENTATION_PLAN.md (gitignored working document — never commit it; sections are numbered, read what your task names).
 
 ## Style (binding)
 
@@ -980,7 +985,7 @@ one drop. If a branch is used at all, it is a single `feature/<topic>` branch fo
 ## Boundaries
 
 - Never edit `.github/workflows/**`, never commit `.tmp/**`, never add dependencies beyond the set
-  in IMPLEMENTATION_PLAN.md §2.
+  in .tmp/IMPLEMENTATION_PLAN.md §2.
 - `README.md` at repo root is packed into the NuGet package — `dotnet pack` fails without it.
 ```
 
