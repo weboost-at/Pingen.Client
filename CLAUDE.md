@@ -58,3 +58,8 @@ one drop. If a branch is used at all, it is a single `feature/<topic>` branch fo
 - Never edit `.github/workflows/**`, never commit `.tmp/**`, never add dependencies beyond the set
   in .tmp/IMPLEMENTATION_PLAN.md §2.
 - `README.md` at repo root is packed into the NuGet package — `dotnet pack` fails without it.
+
+## Spec sync
+
+tools/spec-manifest.json pins the Pingen contract snapshot this client implements; the spec itself
+is never committed. To check or reconcile drift, follow tools/SPEC_SYNC.md exactly.
