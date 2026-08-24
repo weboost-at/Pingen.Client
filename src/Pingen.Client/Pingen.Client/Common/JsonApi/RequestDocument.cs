@@ -20,7 +20,7 @@ public record RequestDocument<TAttributes>
 public record RequestData<TAttributes>
 {
     /// <summary>
-    /// The JSON:API type being written, for example <c>letters</c>.
+    /// The JSON:API type being written - the types this client writes are named on <see cref="PingenType"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -86,7 +86,7 @@ public static class RequestDocument
                 Id = id,
                 Attributes = attributes,
                 Relationships = presetId is { } preset
-                    ? new() { Preset = new() { Data = new() { Id = preset.ToString(), Type = "presets" } } }
+                    ? new() { Preset = new() { Data = new() { Id = preset.ToString(), Type = PingenType.Presets } } }
                     : null,
             },
         };

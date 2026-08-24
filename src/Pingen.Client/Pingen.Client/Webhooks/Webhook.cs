@@ -15,7 +15,7 @@ public record Webhook
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>webhooks</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Webhooks"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

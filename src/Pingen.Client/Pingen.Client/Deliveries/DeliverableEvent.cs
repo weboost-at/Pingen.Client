@@ -16,8 +16,8 @@ public record DeliverableEvent
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource - <c>letters_events</c> on letters, <c>deliverables_events</c> on emails and
-    /// ebills.
+    /// The JSON:API type of the resource - <see cref="PingenType.LettersEvents"/> on letters,
+    /// <see cref="PingenType.DeliverablesEvents"/> on emails and ebills.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

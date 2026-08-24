@@ -15,7 +15,7 @@ public record Ebill
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>ebills</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Ebills"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

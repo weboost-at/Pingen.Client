@@ -15,7 +15,7 @@ public record User
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>users</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Users"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

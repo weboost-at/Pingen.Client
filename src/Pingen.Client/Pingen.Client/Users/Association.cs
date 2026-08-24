@@ -15,7 +15,7 @@ public record Association
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>associations</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Associations"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

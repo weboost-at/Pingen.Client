@@ -20,16 +20,6 @@ public static class PingenWebhook
     /// </summary>
     public const string SignatureHeader = "Signature";
 
-    private const string IssuesType = "webhook_issues";
-
-    private const string SentType = "webhook_sent";
-
-    private const string DeliveredType = "webhook_delivered";
-
-    private const string UndeliverableType = "webhook_undeliverable";
-
-    private const string ChannelSubscriptionsType = "webhook_channel_subscriptions";
-
     /// <summary>
     /// Verifies the signature of <paramref name="payload"/> and parses it into the event its <c>data.type</c> names,
     /// throwing a <see cref="PingenException"/> when the signature does not match or the type is unknown.
@@ -79,11 +69,11 @@ public static class PingenWebhook
 
         WebhookEvent @event = type switch
         {
-            IssuesType => ReadAttributes<WebhookIssueEvent>(data),
-            SentType => ReadAttributes<WebhookSentEvent>(data),
-            DeliveredType => ReadAttributes<WebhookDeliveredEvent>(data),
-            UndeliverableType => ReadAttributes<WebhookUndeliverableEvent>(data),
-            ChannelSubscriptionsType => ReadAttributes<WebhookChannelSubscriptionEvent>(data) with { ChannelEbill = Related(data, "channel_ebill") },
+            PingenType.WebhookIssues => ReadAttributes<WebhookIssueEvent>(data),
+            PingenType.WebhookSent => ReadAttributes<WebhookSentEvent>(data),
+            PingenType.WebhookDelivered => ReadAttributes<WebhookDeliveredEvent>(data),
+            PingenType.WebhookUndeliverable => ReadAttributes<WebhookUndeliverableEvent>(data),
+            PingenType.WebhookChannelSubscriptions => ReadAttributes<WebhookChannelSubscriptionEvent>(data) with { ChannelEbill = Related(data, "channel_ebill") },
             _ => throw Rejected($"'{type}' is not a webhook event type this version of the SDK knows."),
         };
 

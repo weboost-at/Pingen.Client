@@ -15,7 +15,7 @@ public record Organisation
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>organisations</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Organisations"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

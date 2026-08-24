@@ -8,10 +8,6 @@ namespace Pingen.Client.Deliveries.Letters;
 /// </summary>
 public class LetterService(PingenClient client)
 {
-    private const string LetterType = "letters";
-
-    private const string PriceCalculatorType = "letter_price_calculator";
-
     /// <summary>
     /// Lists one page of the organisation's letters.
     /// </summary>
@@ -39,7 +35,7 @@ public class LetterService(PingenClient client)
         var document = await client.SendAsync<SingleDocument<Letter>>(
             method: HttpMethod.Post,
             path: LettersPath(organisationId),
-            body: RequestDocument.For(LetterType, options, presetId: options.PresetId),
+            body: RequestDocument.For(PingenType.Letters, options, presetId: options.PresetId),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );
@@ -118,7 +114,7 @@ public class LetterService(PingenClient client)
         var document = await client.SendAsync<SingleDocument<Letter>>(
             method: HttpMethod.Patch,
             path: $"{LetterPath(organisationId, letterId)}/send",
-            body: RequestDocument.For(LetterType, options, id: letterId.ToString()),
+            body: RequestDocument.For(PingenType.Letters, options, id: letterId.ToString()),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );
@@ -204,7 +200,7 @@ public class LetterService(PingenClient client)
         var document = await client.SendOrDefaultAsync<SingleDocument<LetterPrice>>(
             method: HttpMethod.Post,
             path: $"{LettersPath(organisationId)}/price-calculator",
-            body: RequestDocument.For(PriceCalculatorType, options),
+            body: RequestDocument.For(PingenType.LetterPriceCalculator, options),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );

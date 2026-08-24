@@ -32,7 +32,7 @@ public record ResourceIdentifier
     public required string Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, for example <c>letters</c>.
+    /// The JSON:API type of the resource - the types this client knows are named on <see cref="PingenType"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

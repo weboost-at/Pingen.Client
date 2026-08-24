@@ -17,7 +17,8 @@ public abstract record WebhookEvent
     public Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type the payload was dispatched by, for example <c>webhook_sent</c>.
+    /// The JSON:API type the payload was dispatched by, one of the <c>webhook_*</c> types named on
+    /// <see cref="PingenType"/>.
     /// </summary>
     [JsonIgnore]
     public string Type { get; init; } = string.Empty;

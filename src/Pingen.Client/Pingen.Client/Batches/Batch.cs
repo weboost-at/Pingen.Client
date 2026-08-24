@@ -15,7 +15,7 @@ public record Batch
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>batches</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Batches"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

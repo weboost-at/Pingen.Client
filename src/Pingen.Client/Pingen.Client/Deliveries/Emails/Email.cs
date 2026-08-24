@@ -15,7 +15,7 @@ public record Email
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>emails</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Emails"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
