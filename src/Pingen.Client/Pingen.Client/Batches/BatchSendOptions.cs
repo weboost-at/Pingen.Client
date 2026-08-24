@@ -92,42 +92,42 @@ public enum BatchDeliveryProduct
     /// <summary>
     /// Priority mail.
     /// </summary>
-    [JsonStringEnumMemberName("fast")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Fast)]
     Fast,
 
     /// <summary>
     /// Economy mail.
     /// </summary>
-    [JsonStringEnumMemberName("cheap")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Cheap)]
     Cheap,
 
     /// <summary>
     /// Bulk mail.
     /// </summary>
-    [JsonStringEnumMemberName("bulk")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Bulk)]
     Bulk,
 
     /// <summary>
     /// Premium mail.
     /// </summary>
-    [JsonStringEnumMemberName("premium")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Premium)]
     Premium,
 
     /// <summary>
     /// Registered mail.
     /// </summary>
-    [JsonStringEnumMemberName("registered")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Registered)]
     Registered,
 
     /// <summary>
     /// Email, the product of the email channel.
     /// </summary>
-    [JsonStringEnumMemberName("electronic_email")]
+    [JsonStringEnumMemberName(DeliveryProductValue.ElectronicEmail)]
     ElectronicEmail,
 
     /// <summary>
     /// Ebill, the product of the ebill channel.
     /// </summary>
-    [JsonStringEnumMemberName("electronic_ebill")]
+    [JsonStringEnumMemberName(DeliveryProductValue.ElectronicEbill)]
     ElectronicEbill,
 }
