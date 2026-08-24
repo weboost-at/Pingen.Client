@@ -57,7 +57,7 @@ public record OrganisationAttributes
     public required string Name { get; init; }
 
     /// <summary>
-    /// Where the organisation stands - <c>active</c>, <c>termination_confirmed</c> or <c>pending_deletion</c>.
+    /// Where the organisation stands - the values are named on <see cref="OrganisationStatus"/>.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
@@ -69,13 +69,14 @@ public record OrganisationAttributes
     public required string Plan { get; init; }
 
     /// <summary>
-    /// How the organisation pays - <c>prepaid</c> or <c>postpaid</c>.
+    /// How the organisation pays - the values are named on <see cref="OrganisationBillingMode"/>.
     /// </summary>
     [JsonPropertyName("billing_mode")]
     public required string BillingMode { get; init; }
 
     /// <summary>
-    /// The currency the balance and every price are quoted in.
+    /// The currency the balance and every price are quoted in - the values are named on
+    /// <see cref="OrganisationBillingCurrency"/>.
     /// </summary>
     [JsonPropertyName("billing_currency")]
     public required string BillingCurrency { get; init; }
