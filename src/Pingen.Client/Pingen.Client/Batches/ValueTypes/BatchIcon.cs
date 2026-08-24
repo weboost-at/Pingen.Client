@@ -10,96 +10,182 @@ public enum BatchIcon
     /// <summary>
     /// A campaign.
     /// </summary>
-    [JsonStringEnumMemberName("campaign")]
+    [JsonStringEnumMemberName(BatchIconValue.Campaign)]
     Campaign,
 
     /// <summary>
     /// A megaphone.
     /// </summary>
-    [JsonStringEnumMemberName("megaphone")]
+    [JsonStringEnumMemberName(BatchIconValue.Megaphone)]
     Megaphone,
 
     /// <summary>
     /// A waving hand.
     /// </summary>
-    [JsonStringEnumMemberName("wave-hand")]
+    [JsonStringEnumMemberName(BatchIconValue.WaveHand)]
     WaveHand,
 
     /// <summary>
     /// A flash.
     /// </summary>
-    [JsonStringEnumMemberName("flash")]
+    [JsonStringEnumMemberName(BatchIconValue.Flash)]
     Flash,
 
     /// <summary>
     /// A rocket.
     /// </summary>
-    [JsonStringEnumMemberName("rocket")]
+    [JsonStringEnumMemberName(BatchIconValue.Rocket)]
     Rocket,
 
     /// <summary>
     /// A bell.
     /// </summary>
-    [JsonStringEnumMemberName("bell")]
+    [JsonStringEnumMemberName(BatchIconValue.Bell)]
     Bell,
 
     /// <summary>
     /// A percent tag.
     /// </summary>
-    [JsonStringEnumMemberName("percent-tag")]
+    [JsonStringEnumMemberName(BatchIconValue.PercentTag)]
     PercentTag,
 
     /// <summary>
     /// A percent badge.
     /// </summary>
-    [JsonStringEnumMemberName("percent-badge")]
+    [JsonStringEnumMemberName(BatchIconValue.PercentBadge)]
     PercentBadge,
 
     /// <summary>
     /// A present.
     /// </summary>
-    [JsonStringEnumMemberName("present")]
+    [JsonStringEnumMemberName(BatchIconValue.Present)]
     Present,
 
     /// <summary>
     /// A receipt.
     /// </summary>
-    [JsonStringEnumMemberName("receipt")]
+    [JsonStringEnumMemberName(BatchIconValue.Receipt)]
     Receipt,
 
     /// <summary>
     /// A document.
     /// </summary>
-    [JsonStringEnumMemberName("document")]
+    [JsonStringEnumMemberName(BatchIconValue.Document)]
     Document,
 
     /// <summary>
     /// An information sign.
     /// </summary>
-    [JsonStringEnumMemberName("information")]
+    [JsonStringEnumMemberName(BatchIconValue.Information)]
     Information,
 
     /// <summary>
     /// A calendar.
     /// </summary>
-    [JsonStringEnumMemberName("calendar")]
+    [JsonStringEnumMemberName(BatchIconValue.Calendar)]
     Calendar,
 
     /// <summary>
     /// A newspaper.
     /// </summary>
-    [JsonStringEnumMemberName("newspaper")]
+    [JsonStringEnumMemberName(BatchIconValue.Newspaper)]
     Newspaper,
 
     /// <summary>
     /// A crown.
     /// </summary>
-    [JsonStringEnumMemberName("crown")]
+    [JsonStringEnumMemberName(BatchIconValue.Crown)]
     Crown,
 
     /// <summary>
     /// A virus.
     /// </summary>
-    [JsonStringEnumMemberName("virus")]
+    [JsonStringEnumMemberName(BatchIconValue.Virus)]
     Virus,
+}
+
+/// <summary>
+/// The wire values <see cref="BatchIcon"/> serializes to, for comparing the strings responses carry back.
+/// </summary>
+public static class BatchIconValue
+{
+    /// <summary>
+    /// A campaign.
+    /// </summary>
+    public const string Campaign = "campaign";
+
+    /// <summary>
+    /// A megaphone.
+    /// </summary>
+    public const string Megaphone = "megaphone";
+
+    /// <summary>
+    /// A waving hand.
+    /// </summary>
+    public const string WaveHand = "wave-hand";
+
+    /// <summary>
+    /// A flash.
+    /// </summary>
+    public const string Flash = "flash";
+
+    /// <summary>
+    /// A rocket.
+    /// </summary>
+    public const string Rocket = "rocket";
+
+    /// <summary>
+    /// A bell.
+    /// </summary>
+    public const string Bell = "bell";
+
+    /// <summary>
+    /// A percent tag.
+    /// </summary>
+    public const string PercentTag = "percent-tag";
+
+    /// <summary>
+    /// A percent badge.
+    /// </summary>
+    public const string PercentBadge = "percent-badge";
+
+    /// <summary>
+    /// A present.
+    /// </summary>
+    public const string Present = "present";
+
+    /// <summary>
+    /// A receipt.
+    /// </summary>
+    public const string Receipt = "receipt";
+
+    /// <summary>
+    /// A document.
+    /// </summary>
+    public const string Document = "document";
+
+    /// <summary>
+    /// An information sign.
+    /// </summary>
+    public const string Information = "information";
+
+    /// <summary>
+    /// A calendar.
+    /// </summary>
+    public const string Calendar = "calendar";
+
+    /// <summary>
+    /// A newspaper.
+    /// </summary>
+    public const string Newspaper = "newspaper";
+
+    /// <summary>
+    /// A crown.
+    /// </summary>
+    public const string Crown = "crown";
+
+    /// <summary>
+    /// A virus.
+    /// </summary>
+    public const string Virus = "virus";
 }

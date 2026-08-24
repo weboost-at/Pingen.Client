@@ -15,7 +15,7 @@ public record LetterPrice
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>letter_price_calculator</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.LetterPriceCalculator"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

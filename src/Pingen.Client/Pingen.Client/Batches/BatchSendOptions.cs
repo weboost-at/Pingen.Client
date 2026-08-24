@@ -16,8 +16,8 @@ public record BatchSendOptions
     }
 
     /// <summary>
-    /// The JSON:API type the send request is written as - <c>batches_channel_post_send</c>,
-    /// <c>batches_channel_email_send</c> or <c>batches_channel_ebill_send</c>.
+    /// The JSON:API type the send request is written as, one of the three <c>batches_channel_*_send</c> types named
+    /// on <see cref="PingenType"/>.
     /// </summary>
     [JsonIgnore]
     public string Type { get; }
@@ -46,7 +46,7 @@ public record BatchSendOptions
     /// </summary>
     public static BatchSendOptions Post(DeliveryProduct deliveryProduct, PrintMode printMode, PrintSpectrum printSpectrum) =>
         new(
-            type: "batches_channel_post_send",
+            type: PingenType.BatchesChannelPostSend,
             product: ToBatchProduct(deliveryProduct)
         )
         {
@@ -59,7 +59,7 @@ public record BatchSendOptions
     /// </summary>
     public static BatchSendOptions Email() =>
         new(
-            type: "batches_channel_email_send",
+            type: PingenType.BatchesChannelEmailSend,
             product: BatchDeliveryProduct.ElectronicEmail
         );
 
@@ -68,7 +68,7 @@ public record BatchSendOptions
     /// </summary>
     public static BatchSendOptions Ebill() =>
         new(
-            type: "batches_channel_ebill_send",
+            type: PingenType.BatchesChannelEbillSend,
             product: BatchDeliveryProduct.ElectronicEbill
         );
 
@@ -92,42 +92,42 @@ public enum BatchDeliveryProduct
     /// <summary>
     /// Priority mail.
     /// </summary>
-    [JsonStringEnumMemberName("fast")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Fast)]
     Fast,
 
     /// <summary>
     /// Economy mail.
     /// </summary>
-    [JsonStringEnumMemberName("cheap")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Cheap)]
     Cheap,
 
     /// <summary>
     /// Bulk mail.
     /// </summary>
-    [JsonStringEnumMemberName("bulk")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Bulk)]
     Bulk,
 
     /// <summary>
     /// Premium mail.
     /// </summary>
-    [JsonStringEnumMemberName("premium")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Premium)]
     Premium,
 
     /// <summary>
     /// Registered mail.
     /// </summary>
-    [JsonStringEnumMemberName("registered")]
+    [JsonStringEnumMemberName(DeliveryProductValue.Registered)]
     Registered,
 
     /// <summary>
     /// Email, the product of the email channel.
     /// </summary>
-    [JsonStringEnumMemberName("electronic_email")]
+    [JsonStringEnumMemberName(DeliveryProductValue.ElectronicEmail)]
     ElectronicEmail,
 
     /// <summary>
     /// Ebill, the product of the ebill channel.
     /// </summary>
-    [JsonStringEnumMemberName("electronic_ebill")]
+    [JsonStringEnumMemberName(DeliveryProductValue.ElectronicEbill)]
     ElectronicEbill,
 }

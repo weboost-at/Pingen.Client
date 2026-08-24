@@ -15,7 +15,7 @@ public record FileUpload
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>file_uploads</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.FileUploads"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

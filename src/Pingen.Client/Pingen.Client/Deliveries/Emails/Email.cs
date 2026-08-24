@@ -15,7 +15,7 @@ public record Email
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>emails</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Emails"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -51,9 +51,8 @@ public record Email
 public record EmailAttributes
 {
     /// <summary>
-    /// Where the email stands - Pingen deliberately publishes no complete list; observed values are validating, valid,
-    /// invalid, action_required, fixing, submitted, awaiting_credits, accepted, inspection, processing, sent,
-    /// delivered, undeliverable, rejected, expired, cancelling, cancelled.
+    /// Where the email stands - the observed values are named on <see cref="EmailStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
@@ -89,7 +88,7 @@ public record EmailAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// Where the email entered Pingen - an open set including app, api, batch and the integration_* sources.
+    /// Where the email entered Pingen - the values the spec declares are named on <see cref="DeliverySource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }

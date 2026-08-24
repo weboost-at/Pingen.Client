@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Pingen.Client.Common.Json;
 using Pingen.Client.Common.JsonApi;
+using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Deliveries.Letters;
 
@@ -16,7 +17,7 @@ public record Letter
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>letters</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Letters"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -52,11 +53,8 @@ public record Letter
 public record LetterAttributes
 {
     /// <summary>
-    /// How far the letter got - Pingen deliberately publishes no complete list; observed values are <c>validating</c>,
-    /// <c>valid</c>, <c>invalid</c>, <c>action_required</c>, <c>fixing</c>, <c>submitted</c>, <c>awaiting_credits</c>,
-    /// <c>accepted</c>, <c>inspection</c>, <c>processing</c>, <c>printing</c>, <c>transferring</c>, <c>sent</c>,
-    /// <c>delivered</c>, <c>undeliverable</c>, <c>unprintable</c>, <c>rejected</c>, <c>expired</c>, <c>cancelling</c>,
-    /// <c>cancelled</c> and <c>cancelled_expired</c>.
+    /// How far the letter got - the observed values are named on <see cref="LetterStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
@@ -80,7 +78,8 @@ public record LetterAttributes
     public required string Address { get; init; }
 
     /// <summary>
-    /// Which window the recipient address shows through - <c>left</c> or <c>right</c>.
+    /// Which window the recipient address shows through - the values are named on
+    /// <see cref="AddressPositionValue"/>.
     /// </summary>
     [JsonPropertyName("address_position")]
     public required string AddressPosition { get; init; }
@@ -92,20 +91,20 @@ public record LetterAttributes
     public required string Country { get; init; }
 
     /// <summary>
-    /// The product the letter is dispatched with - <c>fast</c>, <c>cheap</c>, <c>bulk</c>, <c>premium</c> or
-    /// <c>registered</c>, plus the electronic products a batch channel assigns.
+    /// The product the letter is dispatched with - the values are named on <see cref="DeliveryProductValue"/>,
+    /// including the two electronic products a batch channel assigns.
     /// </summary>
     [JsonPropertyName("delivery_product")]
     public required string DeliveryProduct { get; init; }
 
     /// <summary>
-    /// Which sides of the paper are printed - <c>simplex</c> or <c>duplex</c>.
+    /// Which sides of the paper are printed - the values are named on <see cref="PrintModeValue"/>.
     /// </summary>
     [JsonPropertyName("print_mode")]
     public required string PrintMode { get; init; }
 
     /// <summary>
-    /// Which colors are printed - <c>color</c> or <c>grayscale</c>.
+    /// Which colors are printed - the values are named on <see cref="PrintSpectrumValue"/>.
     /// </summary>
     [JsonPropertyName("print_spectrum")]
     public required string PrintSpectrum { get; init; }
@@ -123,7 +122,8 @@ public record LetterAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// The kind of paper each page is printed on, one entry per page.
+    /// The kind of paper each page is printed on, one entry per page - the values are named on
+    /// <see cref="PaperTypeValue"/>.
     /// </summary>
     [JsonPropertyName("paper_types")]
     public required IReadOnlyList<string> PaperTypes { get; init; }
@@ -135,8 +135,7 @@ public record LetterAttributes
     public required IReadOnlyList<LetterFont> Fonts { get; init; }
 
     /// <summary>
-    /// Where the letter came from - an open set including <c>app</c>, <c>api</c>, <c>batch</c> and the
-    /// <c>integration_*</c> channels.
+    /// Where the letter came from - the values the spec declares are named on <see cref="DeliverySource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }

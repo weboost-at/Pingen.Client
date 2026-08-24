@@ -15,7 +15,7 @@ public record User
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>users</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Users"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -69,14 +69,13 @@ public record UserAttributes
     public required string LastName { get; init; }
 
     /// <summary>
-    /// Where the user stands - observed values are <c>active</c>, <c>registered</c>, <c>invited</c>,
-    /// <c>pending_deletion</c>, <c>unconfirmed</c> and <c>unconfirmed_expired</c>.
+    /// Where the user stands - the values are named on <see cref="UserStatus"/>.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
 
     /// <summary>
-    /// The language the user reads Pingen in, for example <c>en-GB</c> or <c>de-DE</c>.
+    /// The language the user reads Pingen in - the values are named on <see cref="UserLanguage"/>.
     /// </summary>
     [JsonPropertyName("language")]
     public required string Language { get; init; }

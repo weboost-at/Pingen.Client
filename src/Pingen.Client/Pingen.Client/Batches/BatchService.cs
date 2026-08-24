@@ -8,8 +8,6 @@ namespace Pingen.Client.Batches;
 /// </summary>
 public class BatchService(PingenClient client)
 {
-    private const string BatchType = "batches";
-
     /// <summary>
     /// Lists one page of the organisation's batches.
     /// </summary>
@@ -37,7 +35,7 @@ public class BatchService(PingenClient client)
         var document = await client.SendAsync<SingleDocument<Batch>>(
             method: HttpMethod.Post,
             path: BatchesPath(organisationId),
-            body: RequestDocument.For(BatchType, options, presetId: options.PresetId),
+            body: RequestDocument.For(PingenType.Batches, options, presetId: options.PresetId),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );
@@ -89,7 +87,7 @@ public class BatchService(PingenClient client)
         client.SendAsync(
             method: HttpMethod.Patch,
             path: BatchPath(organisationId, batchId),
-            body: RequestDocument.For(BatchType, options, id: batchId.ToString()),
+            body: RequestDocument.For(PingenType.Batches, options, id: batchId.ToString()),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );
@@ -108,7 +106,7 @@ public class BatchService(PingenClient client)
         client.SendAsync(
             method: HttpMethod.Delete,
             path: BatchPath(organisationId, batchId),
-            body: RequestDocument.For(BatchType, options, id: batchId.ToString()),
+            body: RequestDocument.For(PingenType.Batches, options, id: batchId.ToString()),
             requestOptions: null,
             cancellationToken: cancellationToken
         );

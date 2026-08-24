@@ -15,7 +15,7 @@ public record Ebill
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>ebills</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Ebills"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -51,9 +51,8 @@ public record Ebill
 public record EbillAttributes
 {
     /// <summary>
-    /// Where the ebill stands - Pingen deliberately publishes no complete list; observed values are validating, valid,
-    /// invalid, action_required, fixing, submitted, awaiting_credits, accepted, inspection, processing, sent,
-    /// delivered, undeliverable, rejected, expired, cancelling, cancelled.
+    /// Where the ebill stands - the observed values are named on <see cref="EbillStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
@@ -143,7 +142,7 @@ public record EbillAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// Where the ebill entered Pingen - an open set including app, api, batch and the integration_* sources.
+    /// Where the ebill entered Pingen - the values the spec declares are named on <see cref="DeliverySource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }

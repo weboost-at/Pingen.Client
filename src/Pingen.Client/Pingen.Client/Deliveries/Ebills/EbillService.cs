@@ -27,7 +27,7 @@ public class EbillService(PingenClient client)
         (await client.SendAsync<SingleDocument<Ebill>>(
             HttpMethod.Post,
             Path(organisationId),
-            RequestDocument.For("ebills", options, presetId: options.PresetId),
+            RequestDocument.For(PingenType.Ebills, options, presetId: options.PresetId),
             requestOptions,
             cancellationToken
         )).Data;

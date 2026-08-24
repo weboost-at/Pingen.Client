@@ -8,8 +8,6 @@ namespace Pingen.Client.Webhooks;
 /// </summary>
 public class WebhookService(PingenClient client)
 {
-    private const string WebhookType = "webhooks";
-
     /// <summary>
     /// Lists one page of the organisation's webhooks - this endpoint does not sort, so
     /// <see cref="PingenListOptions.Sort"/> is ignored.
@@ -30,7 +28,7 @@ public class WebhookService(PingenClient client)
         var document = await client.SendAsync<SingleDocument<Webhook>>(
             method: HttpMethod.Post,
             path: WebhooksPath(organisationId),
-            body: RequestDocument.For(WebhookType, options),
+            body: RequestDocument.For(PingenType.Webhooks, options),
             requestOptions: requestOptions,
             cancellationToken: cancellationToken
         );

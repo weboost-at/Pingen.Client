@@ -28,7 +28,7 @@ public class EmailService(PingenClient client)
         (await client.SendAsync<SingleDocument<Email>>(
             HttpMethod.Post,
             Path(organisationId),
-            RequestDocument.For("emails", options, presetId: options.PresetId),
+            RequestDocument.For(PingenType.Emails, options, presetId: options.PresetId),
             requestOptions,
             cancellationToken
         )).Data;

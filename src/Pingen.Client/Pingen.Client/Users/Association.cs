@@ -15,7 +15,7 @@ public record Association
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The JSON:API type of the resource, always <c>associations</c>.
+    /// The JSON:API type of the resource, always <see cref="PingenType.Associations"/>.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
@@ -51,13 +51,13 @@ public record Association
 public record AssociationAttributes
 {
     /// <summary>
-    /// What the user may do in the organisation - <c>owner</c> or <c>manager</c>.
+    /// What the user may do in the organisation - the values are named on <see cref="AssociationRole"/>.
     /// </summary>
     [JsonPropertyName("role")]
     public required string Role { get; init; }
 
     /// <summary>
-    /// Where the membership stands - <c>pending</c>, <c>active</c> or <c>blocked</c>.
+    /// Where the membership stands - the values are named on <see cref="AssociationStatus"/>.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
