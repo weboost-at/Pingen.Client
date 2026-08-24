@@ -5,7 +5,8 @@ using Pingen.Client.Common.Json;
 namespace Pingen.Client.Common;
 
 /// <summary>
-/// A filter expression for the list endpoints, rendered into the JSON the <c>filter</c> query parameter carries.
+/// A filter expression for the list endpoints, rendered into the JSON the <c>filter</c> query parameter carries - the
+/// attribute names live on the resource's field class such as <see cref="Deliveries.Letters.LetterField"/>.
 /// </summary>
 public record PingenFilter
 {

@@ -16,7 +16,8 @@ public record PingenListOptions
     public int? PageLimit { get; init; }
 
     /// <summary>
-    /// Comma-separated sort fields, each optionally prefixed with <c>-</c> for descending order - default is
+    /// Comma-separated sort fields, each optionally prefixed with <c>-</c> for descending order - the names live on
+    /// the resource's field class such as <see cref="Deliveries.Letters.LetterField"/>, and the default is
     /// <c>created_at</c> on resource lists and <c>real_id</c> on event lists.
     /// </summary>
     public string? Sort { get; init; }
@@ -42,7 +43,8 @@ public record PingenListOptions
     public string? Language { get; init; }
 
     /// <summary>
-    /// Sparse fieldsets keyed by JSON:API type, each a comma-separated attribute list.
+    /// Sparse fieldsets keyed by JSON:API type such as <see cref="PingenType.Letters"/>, each a comma-separated list
+    /// of the attribute names the resource's field class carries.
     /// </summary>
     public IReadOnlyDictionary<string, string>? Fields { get; init; }
 }

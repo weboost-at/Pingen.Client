@@ -119,17 +119,22 @@ and `Fields` (sparse fieldsets, keyed by JSON:API type). Filters are built with 
 `DateTimeOffset`:
 
 ```csharp
+using Pingen.Client;
 using Pingen.Client.Common;
+using Pingen.Client.Deliveries.Letters;
 
 var options = new PingenListOptions
 {
     PageLimit = 100,
-    Sort = "-created_at",
+    Sort = $"-{LetterField.CreatedAt}",
     Search = "invoice",
-    Fields = new Dictionary<string, string> { ["letters"] = "status,file_original_name" },
+    Fields = new Dictionary<string, string>
+    {
+        [PingenType.Letters] = $"{LetterField.Status},{LetterField.FileOriginalName}",
+    },
     Filter = PingenFilter.And(
-        PingenFilter.Where("status", "sent"),
-        PingenFilter.GreaterOrEqual("created_at", new DateOnly(2026, 1, 1))
+        PingenFilter.Where(LetterField.Status, LetterStatus.Sent),
+        PingenFilter.GreaterOrEqual(LetterField.CreatedAt, new DateOnly(2026, 1, 1))
     ),
 };
 
@@ -138,6 +143,20 @@ var page = await pingen.Letters.ListAsync(organisationId, options, cancellationT
 
 A few endpoints accept no sorting at all (the four organisation-wide letter event lists and the
 webhook list); a `Sort` handed to them is dropped rather than rejected.
+
+**Wire values are named.** Every attribute the API constrains to a vocabulary is a `string` on the
+response records, because Pingen publishes no complete list of statuses or event codes and an
+unrecognised value must round-trip rather than throw. So that comparing one is not a typo away from
+a silent `false`, each vocabulary is also declared as constants: `LetterStatus.Sent`,
+`OrganisationStatus.Active`, `AssociationRole.Owner`, `DeliverySource.Api`, `AbilityState.Ok`,
+`PingenType.Letters`, and `AddressPositionValue.Left` alongside the `AddressPosition` enum the
+request options take. `LetterField`, `BatchField` and their siblings name the attributes a list
+sorts, filters and shapes by. Every property's XML doc points at the class carrying its values.
+
+```csharp
+if (letter.Attributes.Status == LetterStatus.Undeliverable)
+    Console.WriteLine(letter.Meta?.Abilities?[LetterAbility.Revalidate]);
+```
 
 **Idempotency.** Every mutating method takes an optional `PingenRequestOptions`. Setting
 `IdempotencyKey` makes Pingen replay the original response instead of repeating the operation for 24

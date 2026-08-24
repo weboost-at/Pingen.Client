@@ -15,6 +15,8 @@ The spec itself is NEVER committed; only tools/spec-manifest.json changes.
    b. Read `.tmp/spec-drift.json`. For each listed id — and ONLY those:
       `dotnet run tools/SpecSync.cs -- show <id>`, open the mapped `sdk` file, and reconcile:
       - contract change → update models/methods/tests to match the spec;
+      - vocabulary change → update the constants class carrying it (`*Status`, `*Field`, `*Ability`,
+        `PingenType`, `<X>Value`) and the XML docs pointing at it, not only the service;
       - deliberate divergence → record/extend the manifest `notes` instead of changing code;
       - ADDED operation → implement it (this client stays feature-complete by policy);
       - REMOVED operation → mark the SDK method `[Obsolete]` with the removal date; delete it
