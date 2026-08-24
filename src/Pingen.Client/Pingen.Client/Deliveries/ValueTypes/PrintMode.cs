@@ -10,12 +10,28 @@ public enum PrintMode
     /// <summary>
     /// One-sided printing.
     /// </summary>
-    [JsonStringEnumMemberName("simplex")]
+    [JsonStringEnumMemberName(PrintModeValue.Simplex)]
     Simplex,
 
     /// <summary>
     /// Two-sided printing.
     /// </summary>
-    [JsonStringEnumMemberName("duplex")]
+    [JsonStringEnumMemberName(PrintModeValue.Duplex)]
     Duplex,
+}
+
+/// <summary>
+/// The wire values <see cref="PrintMode"/> serializes to, for comparing the strings responses carry back.
+/// </summary>
+public static class PrintModeValue
+{
+    /// <summary>
+    /// One-sided printing.
+    /// </summary>
+    public const string Simplex = "simplex";
+
+    /// <summary>
+    /// Two-sided printing.
+    /// </summary>
+    public const string Duplex = "duplex";
 }

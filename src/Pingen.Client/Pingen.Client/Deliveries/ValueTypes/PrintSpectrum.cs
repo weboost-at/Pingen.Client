@@ -10,12 +10,28 @@ public enum PrintSpectrum
     /// <summary>
     /// Full-color printing.
     /// </summary>
-    [JsonStringEnumMemberName("color")]
+    [JsonStringEnumMemberName(PrintSpectrumValue.Color)]
     Color,
 
     /// <summary>
     /// Black and white printing.
     /// </summary>
-    [JsonStringEnumMemberName("grayscale")]
+    [JsonStringEnumMemberName(PrintSpectrumValue.Grayscale)]
     Grayscale,
+}
+
+/// <summary>
+/// The wire values <see cref="PrintSpectrum"/> serializes to, for comparing the strings responses carry back.
+/// </summary>
+public static class PrintSpectrumValue
+{
+    /// <summary>
+    /// Full-color printing.
+    /// </summary>
+    public const string Color = "color";
+
+    /// <summary>
+    /// Black and white printing.
+    /// </summary>
+    public const string Grayscale = "grayscale";
 }
