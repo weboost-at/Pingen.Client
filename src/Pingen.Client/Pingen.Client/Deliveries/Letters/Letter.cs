@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Pingen.Client.Common.Json;
 using Pingen.Client.Common.JsonApi;
+using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Deliveries.Letters;
 
@@ -77,7 +78,8 @@ public record LetterAttributes
     public required string Address { get; init; }
 
     /// <summary>
-    /// Which window the recipient address shows through - <c>left</c> or <c>right</c>.
+    /// Which window the recipient address shows through - the values are named on
+    /// <see cref="AddressPositionValue"/>.
     /// </summary>
     [JsonPropertyName("address_position")]
     public required string AddressPosition { get; init; }
@@ -89,20 +91,20 @@ public record LetterAttributes
     public required string Country { get; init; }
 
     /// <summary>
-    /// The product the letter is dispatched with - <c>fast</c>, <c>cheap</c>, <c>bulk</c>, <c>premium</c> or
-    /// <c>registered</c>, plus the electronic products a batch channel assigns.
+    /// The product the letter is dispatched with - the values are named on <see cref="DeliveryProductValue"/>,
+    /// including the two electronic products a batch channel assigns.
     /// </summary>
     [JsonPropertyName("delivery_product")]
     public required string DeliveryProduct { get; init; }
 
     /// <summary>
-    /// Which sides of the paper are printed - <c>simplex</c> or <c>duplex</c>.
+    /// Which sides of the paper are printed - the values are named on <see cref="PrintModeValue"/>.
     /// </summary>
     [JsonPropertyName("print_mode")]
     public required string PrintMode { get; init; }
 
     /// <summary>
-    /// Which colors are printed - <c>color</c> or <c>grayscale</c>.
+    /// Which colors are printed - the values are named on <see cref="PrintSpectrumValue"/>.
     /// </summary>
     [JsonPropertyName("print_spectrum")]
     public required string PrintSpectrum { get; init; }
@@ -120,7 +122,8 @@ public record LetterAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// The kind of paper each page is printed on, one entry per page.
+    /// The kind of paper each page is printed on, one entry per page - the values are named on
+    /// <see cref="PaperTypeValue"/>.
     /// </summary>
     [JsonPropertyName("paper_types")]
     public required IReadOnlyList<string> PaperTypes { get; init; }

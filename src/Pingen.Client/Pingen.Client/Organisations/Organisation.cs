@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Pingen.Client.Common.JsonApi;
+using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Organisations;
 
@@ -106,7 +107,7 @@ public record OrganisationAttributes
     public required string DefaultCountry { get; init; }
 
     /// <summary>
-    /// Which window new letters default to - <c>left</c> or <c>right</c>.
+    /// Which window new letters default to - the values are named on <see cref="AddressPositionValue"/>.
     /// </summary>
     [JsonPropertyName("default_address_position")]
     public required string DefaultAddressPosition { get; init; }

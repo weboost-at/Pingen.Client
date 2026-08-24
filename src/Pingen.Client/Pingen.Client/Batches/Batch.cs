@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using Pingen.Client.Batches.ValueTypes;
 using Pingen.Client.Common.JsonApi;
+using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Batches;
 
@@ -57,13 +59,13 @@ public record BatchAttributes
     public required string Name { get; init; }
 
     /// <summary>
-    /// The channel the batch is dispatched through - <c>post</c>, <c>ebill</c> or <c>email</c>.
+    /// The channel the batch is dispatched through - the values are named on <see cref="BatchChannelTypeValue"/>.
     /// </summary>
     [JsonPropertyName("channel_type")]
     public required string ChannelType { get; init; }
 
     /// <summary>
-    /// The icon the batch is shown with, for example <c>wave-hand</c>.
+    /// The icon the batch is shown with - the values are named on <see cref="BatchIconValue"/>.
     /// </summary>
     [JsonPropertyName("icon")]
     public required string Icon { get; init; }
@@ -93,19 +95,20 @@ public record BatchAttributes
     public required int DeliverableCount { get; init; }
 
     /// <summary>
-    /// Which window the recipient addresses show through - <c>left</c> or <c>right</c>.
+    /// Which window the recipient addresses show through - the values are named on
+    /// <see cref="AddressPositionValue"/>.
     /// </summary>
     [JsonPropertyName("address_position")]
     public required string AddressPosition { get; init; }
 
     /// <summary>
-    /// Which sides of the paper are printed - <c>simplex</c> or <c>duplex</c>.
+    /// Which sides of the paper are printed - the values are named on <see cref="PrintModeValue"/>.
     /// </summary>
     [JsonPropertyName("print_mode")]
     public required string PrintMode { get; init; }
 
     /// <summary>
-    /// Which colors are printed - <c>color</c> or <c>grayscale</c>.
+    /// Which colors are printed - the values are named on <see cref="PrintSpectrumValue"/>.
     /// </summary>
     [JsonPropertyName("print_spectrum")]
     public required string PrintSpectrum { get; init; }
