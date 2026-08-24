@@ -34,7 +34,7 @@ public record WebhookChannelSubscriptionEvent : WebhookEvent
     public required string Address { get; init; }
 
     /// <summary>
-    /// Where the subscription stands - <c>active</c>, <c>inactive</c> or <c>requested</c>.
+    /// Where the subscription stands - the values are named on <see cref="ChannelSubscriptionStatus"/>.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
