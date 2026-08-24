@@ -101,20 +101,41 @@ public enum BatchChannelType
     /// <summary>
     /// Physical mail.
     /// </summary>
-    [JsonStringEnumMemberName("post")]
+    [JsonStringEnumMemberName(BatchChannelTypeValue.Post)]
     Post,
 
     /// <summary>
     /// Electronic invoices.
     /// </summary>
-    [JsonStringEnumMemberName("ebill")]
+    [JsonStringEnumMemberName(BatchChannelTypeValue.Ebill)]
     Ebill,
 
     /// <summary>
     /// Electronic mail.
     /// </summary>
-    [JsonStringEnumMemberName("email")]
+    [JsonStringEnumMemberName(BatchChannelTypeValue.Email)]
     Email,
+}
+
+/// <summary>
+/// The wire values <see cref="BatchChannelType"/> serializes to, for comparing the strings responses carry back.
+/// </summary>
+public static class BatchChannelTypeValue
+{
+    /// <summary>
+    /// Physical mail.
+    /// </summary>
+    public const string Post = "post";
+
+    /// <summary>
+    /// Electronic invoices.
+    /// </summary>
+    public const string Ebill = "ebill";
+
+    /// <summary>
+    /// Electronic mail.
+    /// </summary>
+    public const string Email = "email";
 }
 
 /// <summary>

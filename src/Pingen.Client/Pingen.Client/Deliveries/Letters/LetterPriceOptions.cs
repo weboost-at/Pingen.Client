@@ -47,24 +47,50 @@ public enum PaperType
     /// <summary>
     /// Plain paper.
     /// </summary>
-    [JsonStringEnumMemberName("normal")]
+    [JsonStringEnumMemberName(PaperTypeValue.Normal)]
     Normal,
 
     /// <summary>
     /// A Swiss QR-bill payment part.
     /// </summary>
-    [JsonStringEnumMemberName("qr")]
+    [JsonStringEnumMemberName(PaperTypeValue.Qr)]
     Qr,
 
     /// <summary>
     /// An Austrian SEPA payment slip.
     /// </summary>
-    [JsonStringEnumMemberName("sepa_at")]
+    [JsonStringEnumMemberName(PaperTypeValue.SepaAt)]
     SepaAt,
 
     /// <summary>
     /// A German SEPA payment slip.
     /// </summary>
-    [JsonStringEnumMemberName("sepa_de")]
+    [JsonStringEnumMemberName(PaperTypeValue.SepaDe)]
     SepaDe,
+}
+
+/// <summary>
+/// The wire values <see cref="PaperType"/> serializes to, for comparing the strings responses carry back.
+/// </summary>
+public static class PaperTypeValue
+{
+    /// <summary>
+    /// Plain paper.
+    /// </summary>
+    public const string Normal = "normal";
+
+    /// <summary>
+    /// A Swiss QR-bill payment part.
+    /// </summary>
+    public const string Qr = "qr";
+
+    /// <summary>
+    /// An Austrian SEPA payment slip.
+    /// </summary>
+    public const string SepaAt = "sepa_at";
+
+    /// <summary>
+    /// A German SEPA payment slip.
+    /// </summary>
+    public const string SepaDe = "sepa_de";
 }
