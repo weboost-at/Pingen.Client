@@ -51,9 +51,8 @@ public record Email
 public record EmailAttributes
 {
     /// <summary>
-    /// Where the email stands - Pingen deliberately publishes no complete list; observed values are validating, valid,
-    /// invalid, action_required, fixing, submitted, awaiting_credits, accepted, inspection, processing, sent,
-    /// delivered, undeliverable, rejected, expired, cancelling, cancelled.
+    /// Where the email stands - the observed values are named on <see cref="EmailStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }

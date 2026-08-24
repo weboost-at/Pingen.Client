@@ -51,9 +51,8 @@ public record Ebill
 public record EbillAttributes
 {
     /// <summary>
-    /// Where the ebill stands - Pingen deliberately publishes no complete list; observed values are validating, valid,
-    /// invalid, action_required, fixing, submitted, awaiting_credits, accepted, inspection, processing, sent,
-    /// delivered, undeliverable, rejected, expired, cancelling, cancelled.
+    /// Where the ebill stands - the observed values are named on <see cref="EbillStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }

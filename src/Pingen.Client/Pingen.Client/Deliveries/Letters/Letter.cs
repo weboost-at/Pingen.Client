@@ -52,11 +52,8 @@ public record Letter
 public record LetterAttributes
 {
     /// <summary>
-    /// How far the letter got - Pingen deliberately publishes no complete list; observed values are <c>validating</c>,
-    /// <c>valid</c>, <c>invalid</c>, <c>action_required</c>, <c>fixing</c>, <c>submitted</c>, <c>awaiting_credits</c>,
-    /// <c>accepted</c>, <c>inspection</c>, <c>processing</c>, <c>printing</c>, <c>transferring</c>, <c>sent</c>,
-    /// <c>delivered</c>, <c>undeliverable</c>, <c>unprintable</c>, <c>rejected</c>, <c>expired</c>, <c>cancelling</c>,
-    /// <c>cancelled</c> and <c>cancelled_expired</c>.
+    /// How far the letter got - the observed values are named on <see cref="LetterStatus"/>, and Pingen deliberately
+    /// publishes no complete list.
     /// </summary>
     [JsonPropertyName("status")]
     public required string Status { get; init; }
