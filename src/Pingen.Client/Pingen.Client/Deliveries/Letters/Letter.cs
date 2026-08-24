@@ -132,8 +132,7 @@ public record LetterAttributes
     public required IReadOnlyList<LetterFont> Fonts { get; init; }
 
     /// <summary>
-    /// Where the letter came from - an open set including <c>app</c>, <c>api</c>, <c>batch</c> and the
-    /// <c>integration_*</c> channels.
+    /// Where the letter came from - the values the spec declares are named on <see cref="DeliverySource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }

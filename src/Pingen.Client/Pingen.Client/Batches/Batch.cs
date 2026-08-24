@@ -123,7 +123,7 @@ public record BatchAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// Where the batch came from - an open set including <c>app</c> and <c>api</c>.
+    /// Where the batch came from - the values the spec declares are named on <see cref="BatchSource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }

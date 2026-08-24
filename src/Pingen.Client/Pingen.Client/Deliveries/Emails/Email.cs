@@ -88,7 +88,7 @@ public record EmailAttributes
     public required decimal PriceValue { get; init; }
 
     /// <summary>
-    /// Where the email entered Pingen - an open set including app, api, batch and the integration_* sources.
+    /// Where the email entered Pingen - the values the spec declares are named on <see cref="DeliverySource"/>.
     /// </summary>
     [JsonPropertyName("source")]
     public required string Source { get; init; }
