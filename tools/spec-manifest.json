@@ -2,10 +2,10 @@
   "specTitle": "Pingen by Pingen GmbH",
   "specVersion": "2.0.0",
   "specUrl": "https://api.pingen.com/documentation/swagger-docs",
-  "lastSync": "2026-08-22",
-  "generatedFrom": "sha256:6699b736d1abfd6ae4945c2906cbd2bba2f3d9af65bf2c54e248b11674eacf64",
+  "lastSync": "2026-10-01",
+  "generatedFrom": "sha256:6937c2821a04c3f48d01b6a39223f947fc0703438ffa4730b8330ad6ba615f3b",
   "authDigest": "660617c10420",
-  "emptyPathCount": 180,
+  "emptyPathCount": 182,
   "operations": [
     {
       "id": "batches.cancel",
