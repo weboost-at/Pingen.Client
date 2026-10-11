@@ -45,6 +45,31 @@ public class LetterTests
         letter.Meta!.Abilities.Should().Contain(new KeyValuePair<string, string>("send-simplex", "permission"));
     }
 
+    [Fact]
+    public void When_an_unsent_letter_arrives_Deserialize_leaves_its_delivery_and_price_null()
+    {
+        // Act
+        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>($$"""{ "data": {{UnsentLetterJson("valid", "1")}} }""", PingenJson.Options)!.Data;
+
+        // Assert
+        letter.Attributes.FilePages.Should().Be(1);
+        letter.Attributes.DeliveryProduct.Should().BeNull();
+        letter.Attributes.PrintMode.Should().BeNull();
+        letter.Attributes.PrintSpectrum.Should().BeNull();
+        letter.Attributes.PriceCurrency.Should().BeNull();
+        letter.Attributes.PriceValue.Should().BeNull();
+    }
+
+    [Fact]
+    public void When_a_letter_is_still_validating_Deserialize_leaves_its_page_count_null()
+    {
+        // Act
+        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>($$"""{ "data": {{UnsentLetterJson("validating", "null")}} }""", PingenJson.Options)!.Data;
+
+        // Assert
+        letter.Attributes.FilePages.Should().BeNull();
+    }
+
     [Theory]
     [InlineData("true", true)]
     [InlineData("false", false)]
@@ -164,4 +189,32 @@ public class LetterTests
                                         "meta": { "abilities": { "self": { "cancel": "ok", "delete": "state", "send-simplex": "permission" } } }
                                       }
                                       """;
+
+    private static string UnsentLetterJson(string status, string filePages) =>
+        $$"""
+          {
+            "id": "2a4c9e77-2222-4000-8000-000000000003",
+            "type": "letters",
+            "attributes": {
+              "status": "{{status}}",
+              "file_original_name": "lörem.pdf",
+              "file_pages": {{filePages}},
+              "address": "Hans Meier\nExample street 4\n8000 Zürich\nSwitzerland",
+              "address_position": "left",
+              "country": "CH",
+              "delivery_product": null,
+              "print_mode": null,
+              "print_spectrum": null,
+              "price_currency": null,
+              "price_value": null,
+              "paper_types": ["normal"],
+              "fonts": [{ "name": "LiberationSans", "is_embedded": true }],
+              "source": "api",
+              "tracking_number": null,
+              "submitted_at": null,
+              "created_at": "2026-10-11T16:14:40+0200",
+              "updated_at": "2026-10-11T16:14:43+0200"
+            }
+          }
+          """;
 }

@@ -66,10 +66,10 @@ public record LetterAttributes
     public required string FileOriginalName { get; init; }
 
     /// <summary>
-    /// The number of pages of the PDF.
+    /// The number of pages of the PDF - null while the file is still being validated.
     /// </summary>
     [JsonPropertyName("file_pages")]
-    public required int FilePages { get; init; }
+    public required int? FilePages { get; init; }
 
     /// <summary>
     /// The recipient address read from the address window, one line per newline.
@@ -92,34 +92,36 @@ public record LetterAttributes
 
     /// <summary>
     /// The product the letter is dispatched with - the values are named on <see cref="DeliveryProductValue"/>,
-    /// including the two electronic products a batch channel assigns.
+    /// including the two electronic products a batch channel assigns - null until the letter is sent.
     /// </summary>
     [JsonPropertyName("delivery_product")]
-    public required string DeliveryProduct { get; init; }
+    public required string? DeliveryProduct { get; init; }
 
     /// <summary>
-    /// Which sides of the paper are printed - the values are named on <see cref="PrintModeValue"/>.
+    /// Which sides of the paper are printed - the values are named on <see cref="PrintModeValue"/>, null until the
+    /// letter is sent.
     /// </summary>
     [JsonPropertyName("print_mode")]
-    public required string PrintMode { get; init; }
+    public required string? PrintMode { get; init; }
 
     /// <summary>
-    /// Which colors are printed - the values are named on <see cref="PrintSpectrumValue"/>.
+    /// Which colors are printed - the values are named on <see cref="PrintSpectrumValue"/>, null until the letter
+    /// is sent.
     /// </summary>
     [JsonPropertyName("print_spectrum")]
-    public required string PrintSpectrum { get; init; }
+    public required string? PrintSpectrum { get; init; }
 
     /// <summary>
-    /// The currency the price is quoted in.
+    /// The currency the price is quoted in - null until the letter is sent.
     /// </summary>
     [JsonPropertyName("price_currency")]
-    public required string PriceCurrency { get; init; }
+    public required string? PriceCurrency { get; init; }
 
     /// <summary>
-    /// What the letter costs.
+    /// What the letter costs - null until the letter is sent, and still null in the answer to the send call itself.
     /// </summary>
     [JsonPropertyName("price_value")]
-    public required decimal PriceValue { get; init; }
+    public required decimal? PriceValue { get; init; }
 
     /// <summary>
     /// The kind of paper each page is printed on, one entry per page - the values are named on

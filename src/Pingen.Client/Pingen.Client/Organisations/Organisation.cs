@@ -125,22 +125,22 @@ public record OrganisationAttributes
     public required int DataRetentionPdf { get; init; }
 
     /// <summary>
-    /// How many letters the organisation may send per month.
+    /// How many letters the organisation may send per month - null when Pingen reports none.
     /// </summary>
     [JsonPropertyName("limits_monthly_letters_count")]
-    public required int LimitsMonthlyLettersCount { get; init; }
+    public required int? LimitsMonthlyLettersCount { get; init; }
 
     /// <summary>
-    /// How many ebills the organisation may send per month.
+    /// How many ebills the organisation may send per month - null when Pingen reports none.
     /// </summary>
     [JsonPropertyName("limits_monthly_ebills_count")]
-    public required int LimitsMonthlyEbillsCount { get; init; }
+    public required int? LimitsMonthlyEbillsCount { get; init; }
 
     /// <summary>
-    /// How many emails the organisation may send per month.
+    /// How many emails the organisation may send per month - null when Pingen reports none.
     /// </summary>
     [JsonPropertyName("limits_monthly_emails_count")]
-    public required int LimitsMonthlyEmailsCount { get; init; }
+    public required int? LimitsMonthlyEmailsCount { get; init; }
 
     /// <summary>
     /// The colour the organisation is marked with in the app, as a hex triplet.

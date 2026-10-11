@@ -16,7 +16,7 @@ public class OrganisationServiceTests
                                      "meta": { "abilities": { "self": { "manage": "ok" } } },
                                      """;
 
-    private static string OrganisationJson(string id = "6c3d1f0a-1111-4000-8000-000000000001", string meta = "") =>
+    private static string OrganisationJson(string id = "6c3d1f0a-1111-4000-8000-000000000001", string meta = "", string limit = "5000") =>
         $$"""
           {
             {{meta}}
@@ -35,9 +35,9 @@ public class OrganisationServiceTests
               "default_address_position": "left",
               "data_retention_addresses": 18,
               "data_retention_pdf": 12,
-              "limits_monthly_letters_count": 5000,
-              "limits_monthly_ebills_count": 5000,
-              "limits_monthly_emails_count": 5000,
+              "limits_monthly_letters_count": {{limit}},
+              "limits_monthly_ebills_count": {{limit}},
+              "limits_monthly_emails_count": {{limit}},
               "color": "#0758FF",
               "flags": ["batch", "ebill"],
               "created_at": "2020-11-19T09:42:48+0100",
@@ -131,6 +131,22 @@ public class OrganisationServiceTests
         host.Api.Request.Query.Should().BeEmpty();
         organisation.Attributes.DefaultAddressPosition.Should().Be("left");
         organisation.Meta!.Abilities.Should().Contain(new KeyValuePair<string, string>("manage", "ok"));
+    }
+
+    [Fact]
+    public async Task When_pingen_reports_no_monthly_limits_GetAsync_maps_them_to_null()
+    {
+        // Arrange
+        using var host = new PingenTestHost();
+        host.Api.EnqueueOk($$"""{ "data": {{OrganisationJson(limit: "null")}} }""");
+
+        // Act
+        var organisation = await new OrganisationService(host.Client).GetAsync(OrganisationId, TestContext.Current.CancellationToken);
+
+        // Assert
+        organisation.Attributes.LimitsMonthlyLettersCount.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyEbillsCount.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyEmailsCount.Should().BeNull();
     }
 
     [Fact]
