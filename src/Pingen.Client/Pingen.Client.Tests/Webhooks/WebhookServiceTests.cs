@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Tests.Tests;
 using Pingen.Client.Webhooks;
 
 namespace Pingen.Client.Tests.Webhooks;

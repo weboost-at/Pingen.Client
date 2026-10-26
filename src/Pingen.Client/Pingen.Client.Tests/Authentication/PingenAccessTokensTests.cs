@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Pingen.Client.Authentication;
 using Pingen.Client.Common;
 using Pingen.Client.Options;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Authentication;
 

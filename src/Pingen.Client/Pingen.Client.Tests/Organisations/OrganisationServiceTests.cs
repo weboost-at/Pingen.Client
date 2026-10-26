@@ -3,7 +3,6 @@ using System.Net.Http.Headers;
 using FluentAssertions;
 using Pingen.Client.Common;
 using Pingen.Client.Organisations;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Organisations;
 

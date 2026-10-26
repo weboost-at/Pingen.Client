@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Authentication;
 

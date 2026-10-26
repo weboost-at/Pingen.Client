@@ -3,7 +3,6 @@ using System.Text;
 using FluentAssertions;
 using Pingen.Client.Common;
 using Pingen.Client.Deliveries.Emails;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Deliveries.Emails;
 

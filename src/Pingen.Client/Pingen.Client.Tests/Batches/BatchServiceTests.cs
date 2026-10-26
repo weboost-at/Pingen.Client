@@ -5,7 +5,6 @@ using Pingen.Client.Batches;
 using Pingen.Client.Batches.ValueTypes;
 using Pingen.Client.Common;
 using Pingen.Client.Deliveries.ValueTypes;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Batches;
 

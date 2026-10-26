@@ -2,7 +2,6 @@ using System.Net;
 using FluentAssertions;
 using Pingen.Client.Common;
 using Pingen.Client.Deliveries.Ebills;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests.Deliveries.Ebills;
 

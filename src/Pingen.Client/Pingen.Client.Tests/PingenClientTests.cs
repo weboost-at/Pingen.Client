@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests;
 

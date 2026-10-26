@@ -2,7 +2,7 @@ using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Pingen.Client.Options;
 
-namespace Pingen.Client.Tests.Tests;
+namespace Pingen.Client.Tests.Testing.Hosting;
 
 /// <summary>
 /// A real dependency injection container wired through <c>AddPingen</c>, with all three HTTP clients answered by

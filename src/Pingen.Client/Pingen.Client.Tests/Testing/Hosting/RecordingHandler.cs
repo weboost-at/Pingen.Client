@@ -3,7 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 
-namespace Pingen.Client.Tests.Tests;
+namespace Pingen.Client.Tests.Testing.Hosting;
 
 /// <summary>
 /// An HTTP handler that records every request it receives and answers with the responses queued on it.

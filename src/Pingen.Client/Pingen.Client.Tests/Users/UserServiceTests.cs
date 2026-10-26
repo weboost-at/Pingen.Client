@@ -1,7 +1,6 @@
 using System.Net;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Tests.Tests;
 using Pingen.Client.Users;
 
 namespace Pingen.Client.Tests.Users;
