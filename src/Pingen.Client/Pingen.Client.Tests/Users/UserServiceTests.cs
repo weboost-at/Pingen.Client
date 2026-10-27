@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Users;
 public class UserServiceTests : UserTestBase
 {
     [Fact]
-    public async Task When_the_authenticated_user_is_asked_for_GetAsync_gets_the_singleton_without_an_id_and_maps_it()
+    public async Task GetAsync_Gets_The_Singleton_Without_An_Id_And_Maps_It()
     {
         // Arrange
         Host.Api.EnqueueOk(UserDocument());
@@ -38,7 +38,7 @@ public class UserServiceTests : UserTestBase
     }
 
     [Fact]
-    public async Task When_a_page_is_requested_ListAssociationsAsync_sends_the_query_and_maps_the_organisation()
+    public async Task ListAssociationsAsync_Sends_The_Query_And_Maps_The_Organisation()
     {
         // Arrange
         Host.Api.EnqueueOk(AssociationPage(User.AssociationId, number: 1, lastPage: 1));
@@ -71,7 +71,7 @@ public class UserServiceTests : UserTestBase
     }
 
     [Fact]
-    public async Task When_two_pages_are_enumerated_ListAssociationsAutoPagingAsync_yields_both_and_stops_at_the_last()
+    public async Task Given_Two_Pages_ListAssociationsAutoPagingAsync_Yields_Both_And_Stops_At_The_Last()
     {
         // Arrange
         Host.Api
@@ -90,7 +90,7 @@ public class UserServiceTests : UserTestBase
     }
 
     [Fact]
-    public async Task When_the_answer_has_no_counters_ListAssociationsAutoPagingAsync_takes_it_as_the_whole_list()
+    public async Task Given_No_Counters_ListAssociationsAutoPagingAsync_Takes_The_Answer_As_The_Whole_List()
     {
         // Arrange
         Host.Api.EnqueueOk(UnpagedAssociationList());
@@ -105,7 +105,7 @@ public class UserServiceTests : UserTestBase
     }
 
     [Fact]
-    public async Task When_the_token_was_issued_without_the_user_scope_GetAsync_throws_with_the_parsed_errors()
+    public async Task Given_A_Token_Without_The_User_Scope_GetAsync_Throws_With_The_Parsed_Errors()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.Forbidden));

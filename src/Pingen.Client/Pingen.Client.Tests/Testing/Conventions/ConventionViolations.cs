@@ -20,10 +20,10 @@ public static partial class ConventionViolations
         ["intermediate subject"] = new(@"\)\.Which\b|\)\.And\.|\)\.Subject\b")
     };
 
-    // Class.Method of every test named neither When_<condition>_<Method>_<expected> nor Given_<state>_When_..._It_...
+    // Class.Method of every test whose name is neither Given_<state>_<outcome> nor the outcome alone
     public static IEnumerable<string> Names() =>
         TestSources.TestMethods
-            .Where(method => !IsWellNamed(method.Name))
+            .Where(method => !IsWellNamed(method))
             .Select(method => $"{method.DeclaringType!.Name}.{method.Name}")
             .Distinct();
 
@@ -66,8 +66,10 @@ public static partial class ConventionViolations
             .Where(file => TestSources.Lines(file).Any(line => BannedCalls[call].IsMatch(line)))
             .Select(file => $"{file}: {call}");
 
-    private static bool IsWellNamed(string name) =>
-        WellFormedName().IsMatch(name) && (name.StartsWith("When_") || name.StartsWith("Given_") && name.Contains("_When_"));
+    private static bool IsWellNamed(MethodInfo method) =>
+        WellFormedName().IsMatch(method.Name)
+        && !method.Name.StartsWith("When_")
+        && !method.Name.StartsWith($"{method.DeclaringType!.Name.Replace("Tests", "")}_");
 
     private static bool IsInItsOwnFile(Type type) =>
         TestSources.Files.Contains($"{type.Namespace!.Replace($"{RootNamespace}.", "").Replace('.', '/')}/{type.Name}.cs")
@@ -106,7 +108,7 @@ public static partial class ConventionViolations
         }
     }
 
-    [GeneratedRegex(@"^(When|Given)_[A-Za-z0-9]+(_[A-Za-z0-9]+)*$")]
+    [GeneratedRegex(@"^(Given_)?[A-Z][A-Za-z0-9]*(_[A-Z0-9][A-Za-z0-9]*)*$")]
     private static partial Regex WellFormedName();
 
     [GeneratedRegex(@"^\s*public (async )?(Task|void|ValueTask) (?<name>\w+)\(")]

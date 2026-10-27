@@ -44,7 +44,7 @@ public class BatchValueTypeTests : UnitTestBase
     [InlineData(BatchDeliveryProduct.Registered, "registered")]
     [InlineData(BatchDeliveryProduct.ElectronicEmail, "electronic_email")]
     [InlineData(BatchDeliveryProduct.ElectronicEbill, "electronic_ebill")]
-    public void When_a_value_type_crosses_the_wire_it_round_trips_through_its_declared_name(object value, string wire)
+    public void A_Value_Round_Trips_Through_Its_Declared_Name(object value, string wire)
     {
         // Arrange
         var json = $"\"{wire}\"";
@@ -65,7 +65,7 @@ public class BatchValueTypeTests : UnitTestBase
     [InlineData("wave hand")]
     [InlineData("wave–hand")]
     [InlineData("wavehand")]
-    public void When_the_icon_is_not_written_in_kebab_case_Deserialize_throws(string wire)
+    public void Given_An_Icon_Not_In_Kebab_Case_Deserialize_Throws(string wire)
     {
         // Act
         var read = () => JsonSerializer.Deserialize<BatchIcon>($"\"{wire}\"", PingenJson.Options);
@@ -75,7 +75,7 @@ public class BatchValueTypeTests : UnitTestBase
     }
 
     [Fact]
-    public void When_every_icon_is_written_the_wire_names_stay_lowercase_and_free_of_underscores()
+    public void Every_Icon_Wire_Name_Is_Lowercase_And_Free_Of_Underscores()
     {
         // Act
         var written = Enum.GetValues<BatchIcon>().Select(icon => JsonSerializer.Serialize(icon, PingenJson.Options).Trim('"')).ToList();
@@ -92,7 +92,7 @@ public class BatchValueTypeTests : UnitTestBase
     [InlineData(DeliveryProduct.Bulk, BatchDeliveryProduct.Bulk)]
     [InlineData(DeliveryProduct.Premium, BatchDeliveryProduct.Premium)]
     [InlineData(DeliveryProduct.Registered, BatchDeliveryProduct.Registered)]
-    public void When_a_postal_product_is_given_Post_maps_it(DeliveryProduct product, BatchDeliveryProduct expected) =>
+    public void Given_A_Postal_Product_Post_Maps_It(DeliveryProduct product, BatchDeliveryProduct expected) =>
         BatchSendOptions.Post(product, PrintMode.Simplex, PrintSpectrum.Color).Product.Should().Be(expected);
 
     [Theory]
@@ -100,7 +100,7 @@ public class BatchValueTypeTests : UnitTestBase
     [InlineData((DeliveryProduct)5)]
     [InlineData((DeliveryProduct)99)]
     [InlineData((DeliveryProduct)int.MaxValue)]
-    public void When_the_product_has_no_batch_counterpart_Post_throws(DeliveryProduct product)
+    public void Given_A_Product_Without_Batch_Counterpart_Post_Throws(DeliveryProduct product)
     {
         // Act
         var post = () => BatchSendOptions.Post(product, PrintMode.Simplex, PrintSpectrum.Color);

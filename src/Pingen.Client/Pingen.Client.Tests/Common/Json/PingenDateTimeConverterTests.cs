@@ -16,7 +16,7 @@ public class PingenDateTimeConverterTests : UnitTestBase
     [InlineData("2021-11-19T09:42:48-0530", -330)]
     [InlineData("2021-11-19T09:42:48+0545", 345)]
     [InlineData("2021-11-19T09:42:48+1400", 840)]
-    public void When_the_offset_omits_its_colon_Read_still_parses_the_timestamp(string wire, int offsetMinutes)
+    public void Given_An_Offset_Without_Its_Colon_Read_Still_Parses_The_Timestamp(string wire, int offsetMinutes)
     {
         // Arrange
         var expected = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromMinutes(offsetMinutes));
@@ -32,11 +32,11 @@ public class PingenDateTimeConverterTests : UnitTestBase
     [Theory]
     [InlineData("null")]
     [InlineData("\"\"")]
-    public void When_a_nullable_timestamp_is_absent_Read_returns_null(string wire) =>
+    public void Given_An_Absent_Nullable_Timestamp_Read_Returns_Null(string wire) =>
         JsonSerializer.Deserialize<DateTimeOffset?>(wire, PingenJson.Options).Should().BeNull();
 
     [Fact]
-    public void When_a_timestamp_is_written_Write_uses_the_pingen_wire_format()
+    public void Write_Uses_The_Pingen_Wire_Format()
     {
         // Arrange
         var instant = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1));
@@ -52,7 +52,7 @@ public class PingenDateTimeConverterTests : UnitTestBase
 
     // JsonSerializer writes a null itself and never hands it to the converter - only a direct call reaches it
     [Fact]
-    public void When_a_nullable_timestamp_has_no_value_Write_writes_json_null()
+    public void Given_A_Nullable_Timestamp_Without_A_Value_Write_Writes_Json_Null()
     {
         // Arrange
         var buffer = new ArrayBufferWriter<byte>();

@@ -9,7 +9,7 @@ namespace Pingen.Client.Tests.Deliveries;
 public class DeliverableEventTests : UnitTestBase
 {
     [Fact]
-    public void When_a_letter_event_arrives_Deserialize_maps_the_attributes_and_the_links()
+    public void Given_A_Letter_Event_Deserialize_Maps_The_Attributes_And_The_Links()
     {
         // Act
         var @event = JsonSerializer.Deserialize<DeliverableEvent>(Event("letters_events", "letter", "letters"), PingenJson.Options)!;
@@ -35,7 +35,7 @@ public class DeliverableEventTests : UnitTestBase
     [InlineData("letters_events", "letter", "letters")]
     [InlineData("deliverables_events", "email", "emails")]
     [InlineData("deliverables_events", "ebill", "ebills")]
-    public void When_an_event_names_its_channel_Parent_is_that_relationship(string type, string key, string parentType)
+    public void Given_A_Channel_Relationship_Parent_Is_That_Relationship(string type, string key, string parentType)
     {
         // Act
         var @event = JsonSerializer.Deserialize<DeliverableEvent>(Event(type, key, parentType), PingenJson.Options)!;

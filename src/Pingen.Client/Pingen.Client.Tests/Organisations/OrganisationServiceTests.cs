@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Organisations;
 public class OrganisationServiceTests : OrganisationTestBase
 {
     [Fact]
-    public async Task When_the_organisations_of_the_user_are_listed_ListAsync_gets_them_and_maps_the_attributes()
+    public async Task ListAsync_Gets_The_Organisations_And_Maps_The_Attributes()
     {
         // Arrange
         Host.Api.EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 1));
@@ -46,7 +46,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_the_list_spans_two_pages_ListAutoPagingAsync_yields_both_and_asks_for_page_two_only()
+    public async Task Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Asks_For_Page_Two_Only()
     {
         // Arrange
         Host.Api
@@ -72,7 +72,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_no_options_are_given_ListAutoPagingAsync_starts_bare_and_asks_for_page_two()
+    public async Task Given_No_Options_ListAutoPagingAsync_Starts_Bare_And_Asks_For_Page_Two()
     {
         // Arrange
         Host.Api
@@ -91,7 +91,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_a_page_comes_back_empty_ListAutoPagingAsync_stops_although_more_are_announced()
+    public async Task Given_An_Empty_Page_ListAutoPagingAsync_Stops_Although_More_Are_Announced()
     {
         // Arrange
         Host.Api.EnqueueOk(EmptyOrganisationPage());
@@ -106,7 +106,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_one_organisation_is_addressed_GetAsync_gets_it_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Organisation_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(OrganisationDocument());
@@ -123,7 +123,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_pingen_reports_no_monthly_limits_GetAsync_maps_them_to_null()
+    public async Task Given_No_Monthly_Limits_GetAsync_Maps_Them_To_Null()
     {
         // Arrange
         Host.Api.EnqueueOk(OrganisationDocument(limits: "null"));
@@ -138,7 +138,7 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
-    public async Task When_the_list_is_rate_limited_ListAsync_throws_with_the_retry_delay_and_the_request_id()
+    public async Task Given_A_Rate_Limit_ListAsync_Throws_With_The_Retry_Delay_And_The_Request_Id()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests)

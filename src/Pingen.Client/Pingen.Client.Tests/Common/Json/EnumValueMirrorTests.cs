@@ -20,7 +20,7 @@ public class EnumValueMirrorTests : UnitTestBase
     [InlineData(typeof(BatchIcon), typeof(BatchIconValue))]
     [InlineData(typeof(PaperType), typeof(PaperTypeValue))]
     [InlineData(typeof(BatchChannelType), typeof(BatchChannelTypeValue))]
-    public void When_an_enum_is_written_Serialize_uses_only_its_value_class_constants(Type enumType, Type valueType)
+    public void Every_Wire_Name_Of_An_Enum_Is_A_Constant_Of_Its_Value_Class(Type enumType, Type valueType)
     {
         // Act
         var written = Enum.GetValues(enumType)
@@ -40,7 +40,7 @@ public class EnumValueMirrorTests : UnitTestBase
     [InlineData(typeof(BatchIcon), typeof(BatchIconValue))]
     [InlineData(typeof(PaperType), typeof(PaperTypeValue))]
     [InlineData(typeof(BatchChannelType), typeof(BatchChannelTypeValue))]
-    public void Given_a_value_class_When_it_mirrors_an_enum_It_declares_each_member_once(Type enumType, Type valueType)
+    public void A_Value_Class_Declares_Each_Member_Of_Its_Enum_Once(Type enumType, Type valueType)
     {
         // Act
         var constants = Constants(valueType);

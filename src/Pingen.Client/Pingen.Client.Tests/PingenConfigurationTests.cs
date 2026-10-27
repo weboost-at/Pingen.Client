@@ -19,7 +19,7 @@ namespace Pingen.Client.Tests;
 public class PingenConfigurationTests : TestBase
 {
     [Fact]
-    public void When_a_Pingen_section_is_present_AddPingen_binds_every_option_from_it()
+    public void Given_A_Pingen_Section_AddPingen_Binds_Every_Option_From_It()
     {
         // Arrange
         var configuration = new ConfigurationBuilder()
@@ -50,7 +50,7 @@ public class PingenConfigurationTests : TestBase
     }
 
     [Fact]
-    public void When_the_section_omits_the_client_id_AddPingen_fails_the_startup_validation()
+    public void Given_No_Client_Id_AddPingen_Fails_The_Startup_Validation()
     {
         // Arrange
         var configuration = new ConfigurationBuilder()
@@ -79,11 +79,11 @@ public class PingenConfigurationTests : TestBase
     [InlineData(typeof(UserService))]
     [InlineData(typeof(WebhookService))]
     [InlineData(typeof(FileService))]
-    public void When_the_container_is_built_AddPingen_has_registered_the_service(Type service) =>
+    public void AddPingen_Registers_The_Service(Type service) =>
         Host.Provider.GetRequiredService(service).Should().BeOfType(service);
 
     [Fact]
-    public void When_the_client_is_registered_AddPingen_authenticates_it_and_leaves_redirects_unfollowed()
+    public void AddPingen_Authenticates_The_Client_And_Leaves_Redirects_Unfollowed()
     {
         // Arrange
         using var provider = new ServiceCollection().AddPingen(_ => { }).BuildServiceProvider();
@@ -99,13 +99,13 @@ public class PingenConfigurationTests : TestBase
     }
 
     [Fact]
-    public void When_the_token_cache_is_resolved_twice_AddPingen_hands_out_the_same_one() =>
+    public void AddPingen_Hands_Out_One_Token_Cache() =>
         Resolve<PingenAccessTokens>().Should().BeSameAs(Resolve<PingenAccessTokens>());
 
     [Theory]
     [InlineData(PingenEnvironment.Production, "https://api.pingen.com/organisations")]
     [InlineData(PingenEnvironment.Staging, "https://api-staging.pingen.com/organisations")]
-    public async Task When_an_environment_is_set_AddPingen_targets_its_api(PingenEnvironment environment, string url)
+    public async Task Given_An_Environment_AddPingen_Targets_Its_Api(PingenEnvironment environment, string url)
     {
         // Arrange
         HostWith(options => options.Environment = environment);
@@ -120,7 +120,7 @@ public class PingenConfigurationTests : TestBase
     }
 
     [Fact]
-    public async Task When_a_base_address_is_set_AddPingen_targets_it_instead_of_the_environment()
+    public async Task Given_A_Base_Address_AddPingen_Targets_It_Instead_Of_The_Environment()
     {
         // Arrange
         HostWith(options => options.BaseAddress = Data.Options.BaseAddress);

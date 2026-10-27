@@ -11,7 +11,7 @@ namespace Pingen.Client.Tests.Deliveries.Letters;
 public class LetterServiceTests : LetterTestBase
 {
     [Fact]
-    public async Task When_a_page_is_requested_ListAsync_sends_the_query_and_maps_the_page()
+    public async Task ListAsync_Sends_The_Query_And_Maps_The_Page()
     {
         // Arrange
         Host.Api.EnqueueOk(LetterPage(number: 1, lastPage: 2));
@@ -41,7 +41,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_two_pages_are_enumerated_ListAutoPagingAsync_yields_both_and_stops_at_the_last()
+    public async Task Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Stops_At_The_Last()
     {
         // Arrange
         Host.Api.EnqueueOk(LetterPage(number: 1, lastPage: 2)).EnqueueOk(LetterPage(number: 2, lastPage: 2));
@@ -60,7 +60,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_file_is_uploaded_already_CreateAsync_posts_the_envelope_with_preset_and_key()
+    public async Task Given_An_Uploaded_File_CreateAsync_Posts_The_Envelope_With_Preset_And_Key()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, LetterDocument());
@@ -101,7 +101,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_a_stream_is_given_CreateAsync_uploads_it_and_posts_the_presigned_url()
+    public async Task Given_A_Stream_CreateAsync_Uploads_It_And_Posts_The_Presigned_Url()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, LetterDocument());
@@ -137,7 +137,7 @@ public class LetterServiceTests : LetterTestBase
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream(bool url, bool signature)
+    public async Task Given_An_Upload_Target_In_The_Options_CreateAsync_Refuses_The_Stream(bool url, bool signature)
     {
         // Arrange
         using var content = new MemoryStream(File.Pdf);
@@ -164,7 +164,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_a_single_letter_is_requested_GetAsync_gets_its_path_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Letter_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(LetterDocument());
@@ -181,7 +181,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_a_letter_is_deleted_DeleteAsync_sends_a_bodyless_delete_to_its_path()
+    public async Task DeleteAsync_Sends_A_Bodyless_Delete_To_The_Letter()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -195,7 +195,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_a_letter_is_cancelled_CancelAsync_patches_the_cancel_path_without_a_body()
+    public async Task CancelAsync_Patches_The_Cancel_Path_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -210,7 +210,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_a_letter_is_sent_SendAsync_patches_the_send_path_repeating_the_id_in_the_body()
+    public async Task SendAsync_Patches_The_Send_Path_Repeating_The_Id_In_The_Body()
     {
         // Arrange
         Host.Api.EnqueueOk(LetterDocument());
@@ -241,7 +241,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_file_is_asked_for_GetFileLocationAsync_returns_the_location_unfollowed()
+    public async Task GetFileLocationAsync_Returns_The_Location_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -258,7 +258,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_file_is_downloaded_DownloadFileAsync_fetches_the_location_without_authentication()
+    public async Task DownloadFileAsync_Fetches_The_Location_Without_Authentication()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -280,7 +280,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_events_of_a_letter_are_listed_ListEventsAsync_sends_the_language()
+    public async Task ListEventsAsync_Sends_The_Language()
     {
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
@@ -299,7 +299,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_an_event_image_is_downloaded_its_location_is_fetched_without_authentication()
+    public async Task DownloadEventImageAsync_Fetches_The_Location_Without_Authentication()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -318,7 +318,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_an_event_image_is_asked_for_GetEventImageLocationAsync_returns_the_location()
+    public async Task GetEventImageLocationAsync_Returns_The_Location()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -337,7 +337,7 @@ public class LetterServiceTests : LetterTestBase
     [InlineData("delivered")]
     [InlineData("issues")]
     [InlineData("undeliverable")]
-    public async Task When_a_sort_is_given_the_organisation_wide_event_lists_drop_it(string category)
+    public async Task Given_A_Sort_The_Organisation_Wide_Event_Lists_Drop_It(string category)
     {
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
@@ -361,7 +361,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_price_is_calculated_CalculatePriceAsync_posts_the_envelope_and_maps_the_price()
+    public async Task CalculatePriceAsync_Posts_The_Envelope_And_Maps_The_Price()
     {
         // Arrange
         Host.Api.EnqueueOk(PriceDocument());
@@ -392,7 +392,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_price_is_not_ready_CalculatePriceAsync_maps_the_empty_accepted_answer_to_null()
+    public async Task Given_A_Price_Not_Ready_CalculatePriceAsync_Maps_The_Empty_Accepted_Answer_To_Null()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -416,7 +416,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_letter_CreateAsync_throws_with_the_errors_and_the_request_id()
+    public async Task Given_A_Rejection_CreateAsync_Throws_With_The_Errors_And_The_Request_Id()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableEntity));
@@ -438,7 +438,7 @@ public class LetterServiceTests : LetterTestBase
     }
 
     [Fact]
-    public async Task When_the_organisation_is_rate_limited_ListAsync_throws_with_the_retry_delay()
+    public async Task Given_A_Rate_Limit_ListAsync_Throws_With_The_Retry_Delay()
     {
         // Arrange
         var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests)

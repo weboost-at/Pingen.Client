@@ -13,7 +13,7 @@ public class JsonApiDocumentTests : UnitTestBase
     private string ResourceUrl => $"{OrganisationUrl}/deliveries/letters/{Data.Resource.Id}";
 
     [Fact]
-    public void When_a_single_document_arrives_Deserialize_maps_links_relationships_and_abilities()
+    public void Given_A_Single_Document_Deserialize_Maps_Links_Relationships_And_Abilities()
     {
         // Act
         var document = JsonSerializer.Deserialize<SingleDocument<TestResource>>(ResourceDocument(), PingenJson.Options)!;
@@ -42,7 +42,7 @@ public class JsonApiDocumentTests : UnitTestBase
     }
 
     [Fact]
-    public void When_a_list_document_arrives_Deserialize_maps_the_page_and_leaves_item_meta_null()
+    public void Given_A_List_Document_Deserialize_Maps_The_Page_And_Leaves_Item_Meta_Null()
     {
         // Act
         var document = JsonSerializer.Deserialize<ListDocument<TestResource>>(ResourcePage, PingenJson.Options)!;
@@ -64,7 +64,7 @@ public class JsonApiDocumentTests : UnitTestBase
     }
 
     [Fact]
-    public void When_a_create_document_is_built_Serialize_writes_the_envelope_without_an_id()
+    public void Given_A_Create_Document_Serialize_Writes_The_Envelope_Without_An_Id()
     {
         // Arrange
         var document = RequestDocument.For(
@@ -81,7 +81,7 @@ public class JsonApiDocumentTests : UnitTestBase
     }
 
     [Fact]
-    public void When_a_send_document_is_built_Serialize_repeats_the_path_id_in_the_body()
+    public void Given_A_Send_Document_Serialize_Repeats_The_Path_Id_In_The_Body()
     {
         // Arrange
         var document = RequestDocument.For(

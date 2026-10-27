@@ -9,7 +9,7 @@ namespace Pingen.Client.Tests.Webhooks;
 public class WebhookServiceTests : WebhookTestBase
 {
     [Fact]
-    public async Task When_a_sort_is_given_ListAsync_drops_it_and_keeps_the_rest_of_the_query()
+    public async Task Given_A_Sort_ListAsync_Drops_It_And_Keeps_The_Rest_Of_The_Query()
     {
         // Arrange
         Host.Api.EnqueueOk(WebhookPage());
@@ -40,7 +40,7 @@ public class WebhookServiceTests : WebhookTestBase
     }
 
     [Fact]
-    public async Task When_a_webhook_is_created_CreateAsync_posts_the_envelope_with_the_idempotency_key()
+    public async Task CreateAsync_Posts_The_Envelope_With_The_Idempotency_Key()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, WebhookDocument("issues"));
@@ -75,7 +75,7 @@ public class WebhookServiceTests : WebhookTestBase
     [InlineData(WebhookEventCategory.Undeliverable, "undeliverable")]
     [InlineData(WebhookEventCategory.Delivered, "delivered")]
     [InlineData(WebhookEventCategory.ChannelSubscriptions, "channel_subscriptions")]
-    public async Task When_a_category_is_set_CreateAsync_maps_its_wire_name(WebhookEventCategory category, string wire)
+    public async Task Given_A_Category_CreateAsync_Writes_Its_Wire_Name(WebhookEventCategory category, string wire)
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, WebhookDocument(wire));
@@ -97,7 +97,7 @@ public class WebhookServiceTests : WebhookTestBase
     }
 
     [Fact]
-    public async Task When_one_webhook_is_addressed_GetAsync_gets_it_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Webhook_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(WebhookDocument("issues"));
@@ -113,7 +113,7 @@ public class WebhookServiceTests : WebhookTestBase
     }
 
     [Fact]
-    public async Task When_a_subscription_is_cancelled_DeleteAsync_deletes_it_without_a_body()
+    public async Task DeleteAsync_Deletes_The_Webhook_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -127,7 +127,7 @@ public class WebhookServiceTests : WebhookTestBase
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_webhook_CreateAsync_throws_with_the_errors_and_the_request_id()
+    public async Task Given_A_Rejection_CreateAsync_Throws_With_The_Errors_And_The_Request_Id()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableContent));

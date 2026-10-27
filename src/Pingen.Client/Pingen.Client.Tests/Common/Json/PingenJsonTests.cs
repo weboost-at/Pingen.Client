@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Common.Json;
 public class PingenJsonTests : UnitTestBase
 {
     [Fact]
-    public void When_a_member_is_null_Serialize_omits_it()
+    public void Given_A_Null_Member_Serialize_Omits_It()
     {
         // Arrange
         var sample = new Sample
@@ -25,7 +25,7 @@ public class PingenJsonTests : UnitTestBase
     }
 
     [Fact]
-    public void When_the_response_carries_unknown_members_Deserialize_ignores_them()
+    public void Given_Unknown_Members_Deserialize_Ignores_Them()
     {
         // Act
         var sample = JsonSerializer.Deserialize<Sample>(

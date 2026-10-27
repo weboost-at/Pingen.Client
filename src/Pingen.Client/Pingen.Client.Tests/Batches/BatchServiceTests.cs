@@ -11,7 +11,7 @@ namespace Pingen.Client.Tests.Batches;
 public class BatchServiceTests : BatchTestBase
 {
     [Fact]
-    public async Task When_a_page_is_requested_ListAsync_gets_the_batches_path_with_the_query_and_maps_the_page()
+    public async Task ListAsync_Sends_The_Query_And_Maps_The_Page()
     {
         // Arrange
         Host.Api.EnqueueOk(BatchPage(number: 1, lastPage: 2));
@@ -44,7 +44,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_two_pages_are_enumerated_ListAutoPagingAsync_yields_both_and_stops_at_the_last()
+    public async Task Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Stops_At_The_Last()
     {
         // Arrange
         Host.Api.EnqueueOk(BatchPage(number: 1, lastPage: 2)).EnqueueOk(BatchPage(number: 2, lastPage: 2));
@@ -63,7 +63,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_the_archive_is_uploaded_already_CreateAsync_posts_the_grouping_options_and_preset()
+    public async Task Given_An_Uploaded_Archive_CreateAsync_Posts_The_Grouping_Options_And_Preset()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, BatchDocument());
@@ -112,7 +112,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_stream_is_given_CreateAsync_uploads_it_and_posts_the_presigned_url()
+    public async Task Given_A_Stream_CreateAsync_Uploads_It_And_Posts_The_Presigned_Url()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, BatchDocument());
@@ -148,7 +148,7 @@ public class BatchServiceTests : BatchTestBase
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream(bool url, bool signature)
+    public async Task Given_An_Upload_Target_In_The_Options_CreateAsync_Refuses_The_Stream(bool url, bool signature)
     {
         // Arrange
         using var content = new MemoryStream(Batch.Archive);
@@ -173,7 +173,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_single_batch_is_requested_GetAsync_gets_its_path_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Batch_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(BatchDocument());
@@ -191,7 +191,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_batch_is_renamed_EditAsync_patches_its_path_with_the_id_repeated_in_the_body()
+    public async Task EditAsync_Patches_The_Batch_Repeating_The_Id_In_The_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -217,7 +217,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_batch_is_deleted_DeleteAsync_sends_the_required_body_along_with_the_delete()
+    public async Task DeleteAsync_Sends_The_Required_Body_Along_With_The_Delete()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -236,7 +236,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_only_the_batch_is_deleted_DeleteAsync_omits_the_deliverables_flag()
+    public async Task Given_The_Batch_Alone_DeleteAsync_Omits_The_Deliverables_Flag()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -250,7 +250,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_batch_is_cancelled_CancelAsync_patches_the_cancel_path_without_a_body()
+    public async Task CancelAsync_Patches_The_Cancel_Path_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -265,7 +265,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_a_batch_is_sent_by_post_SendAsync_patches_the_send_path_with_the_print_options()
+    public async Task Given_The_Post_Channel_SendAsync_Patches_The_Send_Path_With_The_Print_Options()
     {
         // Arrange
         Host.Api.EnqueueOk(BatchDocument());
@@ -291,7 +291,7 @@ public class BatchServiceTests : BatchTestBase
     [Theory]
     [InlineData("batches_channel_email_send", "electronic_email")]
     [InlineData("batches_channel_ebill_send", "electronic_ebill")]
-    public async Task When_a_batch_is_sent_electronically_SendAsync_omits_print_options(string type, string product)
+    public async Task Given_An_Electronic_Channel_SendAsync_Omits_The_Print_Options(string type, string product)
     {
         // Arrange
         Host.Api.EnqueueOk(BatchDocument());
@@ -313,7 +313,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_the_events_of_a_batch_are_listed_ListEventsAsync_sends_the_language()
+    public async Task ListEventsAsync_Sends_The_Language()
     {
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
@@ -334,7 +334,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_the_statistics_are_requested_GetStatisticsAsync_maps_the_distributions()
+    public async Task GetStatisticsAsync_Maps_The_Distributions()
     {
         // Arrange
         Host.Api.EnqueueOk(StatisticsDocument());
@@ -357,7 +357,7 @@ public class BatchServiceTests : BatchTestBase
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_batch_CreateAsync_throws_with_the_errors_and_the_request_id()
+    public async Task Given_A_Rejection_CreateAsync_Throws_With_The_Errors_And_The_Request_Id()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableEntity));

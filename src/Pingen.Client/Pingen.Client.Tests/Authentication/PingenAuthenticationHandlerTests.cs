@@ -9,7 +9,7 @@ namespace Pingen.Client.Tests.Authentication;
 public class PingenAuthenticationHandlerTests : AuthenticationTestBase
 {
     [Fact]
-    public async Task When_two_requests_are_sent_SendAsync_authenticates_both_from_one_token_request()
+    public async Task Given_Two_Requests_Both_Are_Authenticated_From_One_Token_Request()
     {
         // Arrange
         Host.Api.EnqueueOk("""{ "data": [] }""").EnqueueOk("""{ "data": [] }""");
@@ -28,7 +28,7 @@ public class PingenAuthenticationHandlerTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_token_SendAsync_replays_the_request_once_with_a_fresh_token()
+    public async Task Given_A_Rejected_Token_The_Request_Is_Replayed_Once_With_A_Fresh_One()
     {
         // Arrange
         Host.EnqueueToken(Authentication.FreshToken);
@@ -56,7 +56,7 @@ public class PingenAuthenticationHandlerTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_an_http2_request_is_rejected_SendAsync_replays_it_over_http2()
+    public async Task Given_A_Rejected_Http2_Request_The_Replay_Keeps_Http2()
     {
         // Arrange
         Host.EnqueueToken(Authentication.FreshToken);
@@ -81,7 +81,7 @@ public class PingenAuthenticationHandlerTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_token_SendAsync_disposes_the_rejected_response()
+    public async Task Given_A_Rejected_Token_The_Rejected_Response_Is_Disposed()
     {
         // Arrange
         var rejection = Rejection(HttpStatusCode.Unauthorized);
@@ -99,7 +99,7 @@ public class PingenAuthenticationHandlerTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_the_replayed_request_is_rejected_too_SendAsync_throws_without_retrying_again()
+    public async Task Given_A_Rejected_Replay_It_Throws_Without_Retrying_Again()
     {
         // Arrange
         Host.EnqueueToken(Authentication.FreshToken);

@@ -7,7 +7,7 @@ namespace Pingen.Client.Tests.Common;
 public class PingenExceptionTests : UnitTestBase
 {
     [Fact]
-    public void When_the_api_reports_errors_PingenException_carries_them_with_the_status_and_headers()
+    public void Given_Errors_It_Carries_Them_With_The_Status_And_Headers()
     {
         // Arrange
         PingenError[] errors = [new() { Code = Data.Error.Code, Title = Data.Error.Title, Detail = Data.Error.Detail }];
@@ -31,7 +31,7 @@ public class PingenExceptionTests : UnitTestBase
     [Theory]
     [InlineData("Der Brief ist noch nicht gültig", "1005", "Der Brief ist noch nicht gültig")]
     [InlineData(null, "1005", "1005")]
-    public void When_the_title_is_null_Message_falls_back_to_detail_or_code(string? detail, string code, string shown)
+    public void Given_No_Title_The_Message_Falls_Back_To_Detail_Or_Code(string? detail, string code, string shown)
     {
         // Act
         var exception = new PingenException(HttpStatusCode.UnprocessableEntity, [new() { Code = code, Detail = detail }]);
@@ -41,7 +41,7 @@ public class PingenExceptionTests : UnitTestBase
     }
 
     [Fact]
-    public void When_the_body_carries_no_errors_PingenException_still_names_the_status()
+    public void Given_No_Errors_The_Message_Still_Names_The_Status()
     {
         // Act
         var exception = new PingenException(HttpStatusCode.ServiceUnavailable, []);

@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Deliveries.Ebills;
 public class EbillServiceTests : EbillTestBase
 {
     [Fact]
-    public async Task When_the_ebills_of_an_organisation_are_listed_ListAsync_gets_them_and_maps_the_invoice_dates()
+    public async Task ListAsync_Gets_The_Ebills_And_Maps_The_Invoice_Dates()
     {
         // Arrange
         Host.Api.EnqueueOk(EbillPage(number: 1, lastPage: 1));
@@ -42,7 +42,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_two_pages_are_enumerated_ListAutoPagingAsync_yields_both_and_stops_at_the_last()
+    public async Task Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Stops_At_The_Last()
     {
         // Arrange
         Host.Api.EnqueueOk(EbillPage(number: 1, lastPage: 2)).EnqueueOk(EbillPage(number: 2, lastPage: 2));
@@ -62,7 +62,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_a_file_is_already_uploaded_CreateAsync_posts_the_invoice_dates_as_plain_days()
+    public async Task Given_An_Uploaded_File_CreateAsync_Posts_The_Invoice_Dates_As_Plain_Days()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, EbillDocument());
@@ -92,7 +92,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_a_preset_and_a_key_are_given_CreateAsync_relates_the_preset_and_sends_the_key()
+    public async Task Given_A_Preset_And_A_Key_CreateAsync_Relates_The_Preset_And_Sends_The_Key()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, EbillDocument());
@@ -116,7 +116,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_no_url_is_known_yet_CreateAsync_uploads_the_stream_and_posts_its_url_and_signature()
+    public async Task Given_A_Stream_CreateAsync_Uploads_It_And_Posts_Its_Url_And_Signature()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, EbillDocument());
@@ -151,7 +151,7 @@ public class EbillServiceTests : EbillTestBase
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream(bool url, bool signature)
+    public async Task Given_An_Upload_Target_In_The_Options_CreateAsync_Refuses_The_Stream(bool url, bool signature)
     {
         // Arrange
         using var content = new MemoryStream(File.Pdf);
@@ -176,7 +176,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_one_ebill_is_addressed_GetAsync_gets_it_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Ebill_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(EbillDocument());
@@ -192,7 +192,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_an_ebill_was_created_without_auto_send_SendAsync_patches_send_without_a_body()
+    public async Task SendAsync_Patches_Send_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueOk(EbillDocument());
@@ -211,7 +211,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_an_ebill_is_dropped_DeleteAsync_deletes_it_without_a_body()
+    public async Task DeleteAsync_Deletes_The_Ebill_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -225,7 +225,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_an_ebill_is_still_cancellable_CancelAsync_patches_cancel_without_a_body()
+    public async Task CancelAsync_Patches_Cancel_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -240,7 +240,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_the_file_is_asked_for_GetFileLocationAsync_returns_the_location_unfollowed()
+    public async Task GetFileLocationAsync_Returns_The_Location_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -256,7 +256,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_the_file_endpoint_redirects_DownloadFileAsync_streams_the_location_unauthenticated()
+    public async Task DownloadFileAsync_Streams_The_Location_Unauthenticated()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -278,7 +278,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_the_events_of_an_ebill_are_listed_ListEventsAsync_gets_them_and_maps_the_parent()
+    public async Task ListEventsAsync_Gets_The_Events_And_Maps_The_Parent()
     {
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
@@ -298,7 +298,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_an_event_image_is_requested_DownloadEventImageAsync_streams_it_unauthenticated()
+    public async Task DownloadEventImageAsync_Streams_The_Image_Unauthenticated()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -320,7 +320,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_an_event_image_is_asked_for_GetEventImageLocationAsync_returns_the_location_unfollowed()
+    public async Task GetEventImageLocationAsync_Returns_The_Location_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -336,7 +336,7 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
-    public async Task When_the_ebill_cannot_be_sent_SendAsync_throws_with_the_parsed_errors()
+    public async Task Given_A_Rejection_SendAsync_Throws_With_The_Parsed_Errors()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableContent));

@@ -6,7 +6,7 @@ namespace Pingen.Client.Tests.Common;
 public class PingenQueryTests : UnitTestBase
 {
     [Fact]
-    public void When_no_option_is_set_Build_returns_an_empty_string()
+    public void Given_No_Option_Build_Returns_An_Empty_String()
     {
         // Act
         var withoutOptions = PingenQuery.Build(null);
@@ -18,7 +18,7 @@ public class PingenQueryTests : UnitTestBase
     }
 
     [Fact]
-    public void When_every_option_is_set_Build_emits_the_json_api_query_parameters()
+    public void Given_Every_Option_Build_Emits_The_Json_Api_Query_Parameters()
     {
         // Arrange
         var options = new PingenListOptions
@@ -53,6 +53,6 @@ public class PingenQueryTests : UnitTestBase
     }
 
     [Fact]
-    public void When_only_paging_is_set_Build_emits_nothing_else() =>
+    public void Given_Only_Paging_Build_Emits_Nothing_Else() =>
         PingenQuery.Build(new() { PageLimit = 100 }).Should().Be("?page[limit]=100");
 }

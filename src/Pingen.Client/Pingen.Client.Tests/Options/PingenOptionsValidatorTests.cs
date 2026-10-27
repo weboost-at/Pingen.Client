@@ -12,7 +12,7 @@ public class PingenOptionsValidatorTests : UnitTestBase
     [InlineData("Zürich-Client", "pässwört-ß")]
     [InlineData("клиент", "秘密")]
     [InlineData(" padded ", " x")]
-    public void When_both_credentials_are_set_Validate_succeeds(string id, string secret)
+    public void Given_Both_Credentials_Validation_Succeeds(string id, string secret)
     {
         // Act
         var result = _validator.Validate(name: null, new() { ClientId = id, ClientSecret = secret });
@@ -31,7 +31,7 @@ public class PingenOptionsValidatorTests : UnitTestBase
     [InlineData("id", "", "ClientSecret is required.")]
     [InlineData("Zürich", " ", "ClientSecret is required.")]
     [InlineData("клиент", "　", "ClientSecret is required.")]
-    public void When_a_credential_is_blank_Validate_fails_naming_it(string? id, string? secret, string failure)
+    public void Given_A_Blank_Credential_Validation_Fails_Naming_It(string? id, string? secret, string failure)
     {
         // Act
         var result = _validator.Validate(name: null, new() { ClientId = id, ClientSecret = secret });
@@ -42,7 +42,7 @@ public class PingenOptionsValidatorTests : UnitTestBase
     }
 
     [Fact]
-    public void When_nothing_is_configured_Validate_reports_both_credentials()
+    public void Given_Nothing_Configured_Validation_Reports_Both_Credentials()
     {
         // Act
         var result = _validator.Validate(name: null, new());

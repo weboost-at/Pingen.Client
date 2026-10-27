@@ -5,23 +5,23 @@ namespace Pingen.Client.Tests.Testing.Conventions;
 public class TestConventionTests
 {
     [Fact]
-    public void When_the_tests_are_named_every_name_reads_When_or_Given_When() =>
+    public void Every_Test_Is_Named_Given_State_And_Outcome_Or_The_Outcome_Alone() =>
         ConventionViolations.Names().Should().BeEmpty(Listing(ConventionViolations.Names()));
 
     [Fact]
-    public void When_a_test_is_declared_its_line_fits_120_columns() =>
+    public void Every_Test_Declaration_Fits_120_Columns() =>
         ConventionViolations.LongDeclarations().Should().BeEmpty(Listing(ConventionViolations.LongDeclarations()));
 
     [Fact]
-    public void When_a_test_class_is_placed_it_lives_in_a_file_named_after_it_in_its_namespace_folder() =>
+    public void Every_Test_Class_Lives_In_A_File_Named_After_It_In_Its_Namespace_Folder() =>
         ConventionViolations.Misplaced().Should().BeEmpty(Listing(ConventionViolations.Misplaced()));
 
     [Fact]
-    public void When_a_test_body_is_commented_it_carries_only_Arrange_Act_and_Assert() =>
+    public void Test_Bodies_Carry_No_Comments_But_Arrange_Act_And_Assert() =>
         ConventionViolations.Comments().Should().BeEmpty(Listing(ConventionViolations.Comments()));
 
     [Fact]
-    public void When_a_helper_is_declared_it_lives_in_Testing_or_in_its_slices_Support_folder() =>
+    public void Every_Helper_Lives_In_Testing_Or_In_Its_Slices_Support_Folder() =>
         ConventionViolations.SupportOutsideSupport().Should().BeEmpty(Listing(ConventionViolations.SupportOutsideSupport()));
 
     [Theory]
@@ -34,7 +34,7 @@ public class TestConventionTests
     [InlineData("raw cancellation token")]
     [InlineData("own test host")]
     [InlineData("intermediate subject")]
-    public void When_the_tests_are_written_a_banned_call_stays_out_of_them(string call) =>
+    public void A_Banned_Call_Stays_Out_Of_The_Tests(string call) =>
         ConventionViolations.Banned(call).Should().BeEmpty(Listing(ConventionViolations.Banned(call)));
 
     private static string Listing(IEnumerable<string> entries) =>

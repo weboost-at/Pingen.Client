@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Deliveries.Emails;
 public class EmailServiceTests : EmailTestBase
 {
     [Fact]
-    public async Task When_options_shape_the_page_ListAsync_gets_the_delivery_list_with_the_query_and_maps_the_page()
+    public async Task ListAsync_Sends_The_Query_And_Maps_The_Page()
     {
         // Arrange
         Host.Api.EnqueueOk(EmailPage(number: 2, lastPage: 2));
@@ -53,7 +53,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_collection_spans_pages_ListAutoPagingAsync_yields_every_item_and_asks_for_the_next_page()
+    public async Task Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Asks_For_The_Next_Page()
     {
         // Arrange
         Host.Api.EnqueueOk(EmailPage(number: 1, lastPage: 2)).EnqueueOk(EmailPage(number: 2, lastPage: 2));
@@ -73,7 +73,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_a_file_is_already_uploaded_CreateAsync_posts_the_envelope_without_an_id_and_with_the_preset()
+    public async Task Given_An_Uploaded_File_CreateAsync_Posts_The_Envelope_Without_An_Id_And_With_The_Preset()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, EmailDocument());
@@ -117,7 +117,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_no_url_is_known_yet_CreateAsync_uploads_the_stream_and_posts_its_target_with_the_key()
+    public async Task Given_A_Stream_CreateAsync_Uploads_It_And_Posts_Its_Target_With_The_Key()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, EmailDocument());
@@ -154,7 +154,7 @@ public class EmailServiceTests : EmailTestBase
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream(bool url, bool signature)
+    public async Task Given_An_Upload_Target_In_The_Options_CreateAsync_Refuses_The_Stream(bool url, bool signature)
     {
         // Arrange
         using var content = new MemoryStream(File.Pdf);
@@ -179,7 +179,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_one_email_is_addressed_GetAsync_gets_it_and_maps_the_abilities()
+    public async Task GetAsync_Gets_The_Email_And_Maps_The_Abilities()
     {
         // Arrange
         Host.Api.EnqueueOk(EmailDocument());
@@ -195,7 +195,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_an_email_is_dropped_DeleteAsync_deletes_it_without_a_body()
+    public async Task DeleteAsync_Deletes_The_Email_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -209,7 +209,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_an_email_is_still_cancellable_CancelAsync_patches_cancel_without_a_body()
+    public async Task CancelAsync_Patches_Cancel_Without_A_Body()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -224,7 +224,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_file_is_asked_for_GetFileLocationAsync_returns_the_location_unfollowed()
+    public async Task GetFileLocationAsync_Returns_The_Location_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -240,7 +240,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_file_endpoint_redirects_DownloadFileAsync_follows_the_location_without_authentication()
+    public async Task DownloadFileAsync_Follows_The_Location_Without_Authentication()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -262,7 +262,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_events_of_an_email_are_listed_ListEventsAsync_gets_them_localized_and_maps_the_parent()
+    public async Task ListEventsAsync_Gets_The_Events_Localized_And_Maps_The_Parent()
     {
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
@@ -281,7 +281,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_an_event_carries_an_image_GetEventImageLocationAsync_returns_the_location_unfollowed()
+    public async Task GetEventImageLocationAsync_Returns_The_Location_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -297,7 +297,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_an_event_image_is_downloaded_DownloadEventImageAsync_streams_the_redirect_target()
+    public async Task DownloadEventImageAsync_Streams_The_Redirect_Target()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -319,7 +319,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_create_call_is_rejected_CreateAsync_throws_with_the_parsed_errors_and_the_request_id()
+    public async Task Given_A_Rejection_CreateAsync_Throws_With_The_Parsed_Errors_And_The_Request_Id()
     {
         // Arrange
         Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableContent));
@@ -335,7 +335,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_the_rate_limit_is_reached_ListAsync_throws_with_the_retry_delay()
+    public async Task Given_A_Rate_Limit_ListAsync_Throws_With_The_Retry_Delay()
     {
         // Arrange
         Host.Api.Enqueue(new(HttpStatusCode.TooManyRequests) { Headers = { RetryAfter = new(Request.RetryAfter) } });

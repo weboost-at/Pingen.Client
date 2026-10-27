@@ -12,7 +12,7 @@ public class PingenEnumConverterTests : UnitTestBase
     [InlineData(TestIcon.PercentTag, "\"percent-tag\"")]
     [InlineData(TestIcon.QrInvoice, "\"qr_invoice\"")]
     [InlineData(TestIcon.Campaign, "\"Campaign\"")]
-    public void When_a_member_round_trips_Serialize_and_Deserialize_use_its_wire_name(TestIcon icon, string wire)
+    public void A_Member_Round_Trips_Through_Its_Wire_Name(TestIcon icon, string wire)
     {
         // Act
         var written = JsonSerializer.Serialize(icon, PingenJson.Options);
@@ -32,7 +32,7 @@ public class PingenEnumConverterTests : UnitTestBase
     [InlineData("null")]
     [InlineData("\"1\"")]
     [InlineData("0")]
-    public void When_the_wire_value_is_not_a_declared_name_Deserialize_throws(string wire)
+    public void Given_An_Undeclared_Wire_Value_Deserialize_Throws(string wire)
     {
         // Act
         var read = () => JsonSerializer.Deserialize<TestIcon>(wire, PingenJson.Options);

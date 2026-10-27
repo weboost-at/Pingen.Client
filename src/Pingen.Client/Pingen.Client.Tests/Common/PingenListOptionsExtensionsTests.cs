@@ -6,11 +6,11 @@ namespace Pingen.Client.Tests.Common;
 public class PingenListOptionsExtensionsTests : UnitTestBase
 {
     [Fact]
-    public void When_no_options_are_given_WithoutSort_returns_null() =>
+    public void Given_No_Options_WithoutSort_Returns_Null() =>
         ((PingenListOptions?)null).WithoutSort().Should().BeNull();
 
     [Fact]
-    public void When_options_are_given_WithoutSort_drops_the_sort_and_keeps_the_rest()
+    public void Given_Options_WithoutSort_Drops_The_Sort_And_Keeps_The_Rest()
     {
         // Arrange
         var options = new PingenListOptions

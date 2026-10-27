@@ -11,7 +11,7 @@ namespace Pingen.Client.Tests.Deliveries.Letters;
 public class LetterTests : LetterTestBase
 {
     [Fact]
-    public void When_a_letter_arrives_Deserialize_maps_every_attribute_relationship_and_ability()
+    public void Deserialize_Maps_Every_Attribute_Relationship_And_Ability()
     {
         // Act
         var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(LetterDocument(), PingenJson.Options)!.Data;
@@ -53,7 +53,7 @@ public class LetterTests : LetterTestBase
     }
 
     [Fact]
-    public void When_an_unsent_letter_arrives_Deserialize_leaves_its_delivery_and_price_null()
+    public void Given_An_Unsent_Letter_Deserialize_Leaves_Its_Delivery_And_Price_Null()
     {
         // Act
         var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(UnsentLetterDocument("valid", "1"), PingenJson.Options)!.Data;
@@ -68,7 +68,7 @@ public class LetterTests : LetterTestBase
     }
 
     [Fact]
-    public void When_a_letter_is_still_validating_Deserialize_leaves_its_page_count_null()
+    public void Given_A_Validating_Letter_Deserialize_Leaves_Its_Page_Count_Null()
     {
         // Act
         var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(UnsentLetterDocument("validating", "null"), PingenJson.Options)!.Data;
@@ -83,7 +83,7 @@ public class LetterTests : LetterTestBase
     [InlineData("1", true)]
     [InlineData("0", false)]
     [InlineData("-1", true)]
-    public void When_the_embedded_flag_is_a_number_Deserialize_maps_it_like_a_boolean(string wire, bool expected)
+    public void Given_A_Numeric_Embedded_Flag_Deserialize_Maps_It_Like_A_Boolean(string wire, bool expected)
     {
         // Act
         var font = JsonSerializer.Deserialize<LetterFont>(
@@ -101,11 +101,11 @@ public class LetterTests : LetterTestBase
     [InlineData(PaperType.Qr, "qr")]
     [InlineData(PaperType.SepaAt, "sepa_at")]
     [InlineData(PaperType.SepaDe, "sepa_de")]
-    public void When_a_paper_type_is_written_Serialize_uses_its_wire_name(PaperType paperType, string wire) =>
+    public void Serialize_Writes_The_Wire_Name_Of_A_Paper_Type(PaperType paperType, string wire) =>
         JsonSerializer.Serialize(paperType, PingenJson.Options).Should().Be($"\"{wire}\"");
 
     [Fact]
-    public void When_only_the_required_members_are_set_Serialize_omits_every_optional_one_and_the_preset()
+    public void Given_Only_Required_Members_Serialize_Omits_Every_Optional_One_And_The_Preset()
     {
         // Arrange
         var options = new LetterCreateOptions
@@ -123,7 +123,7 @@ public class LetterTests : LetterTestBase
     }
 
     [Fact]
-    public void When_address_blocks_are_given_Serialize_writes_the_shape_the_api_documents()
+    public void Given_Address_Blocks_Serialize_Writes_The_Shape_The_Api_Documents()
     {
         // Arrange
         var options = new LetterSendOptions
