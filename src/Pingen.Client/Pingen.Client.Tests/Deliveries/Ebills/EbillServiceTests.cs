@@ -1,5 +1,6 @@
 using System.Net;
 using FluentAssertions;
+using Pingen.Client.Common;
 using Pingen.Client.Tests.Deliveries.Ebills.Support;
 
 namespace Pingen.Client.Tests.Deliveries.Ebills;
@@ -10,7 +11,7 @@ public class EbillServiceTests : EbillTestBase
     public async Task When_the_ebills_of_an_organisation_are_listed_ListAsync_gets_them_and_maps_the_invoice_dates()
     {
         // Arrange
-        Host.Api.EnqueueOk(EbillPage());
+        Host.Api.EnqueueOk(EbillPage(number: 1, lastPage: 1));
 
         // Act
         var ebills = await Ebills.ListAsync(Organisation.Id, new() { PageLimit = 100, Sort = "-created_at" }, Ct);
@@ -38,6 +39,26 @@ public class EbillServiceTests : EbillTestBase
 
         ebills[0].Relationships!.Batch.Should().BeNull();
         ebills[0].Relationships!.Events!.Count.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task When_two_pages_are_enumerated_ListAutoPagingAsync_yields_both_and_stops_at_the_last()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(EbillPage(number: 1, lastPage: 2)).EnqueueOk(EbillPage(number: 2, lastPage: 2));
+
+        // Act
+        var ebills = await Ebills
+            .ListAutoPagingAsync(Organisation.Id, new() { PageLimit = 1, Sort = "-created_at" }, Ct)
+            .ToListAsync(Ct);
+
+        // Assert
+        ebills.Select(ebill => ebill.Attributes.FilePages).Should().Equal(1, 2);
+
+        Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Assert.Sent(HttpMethod.Get, EbillsPath);
+        Host.Api.Requests[0].Assert.Query("?page[limit]=1&sort=-created_at");
+        Host.Api.Requests[1].Assert.Query("?page[number]=2&page[limit]=1&sort=-created_at");
     }
 
     [Fact]
@@ -71,6 +92,30 @@ public class EbillServiceTests : EbillTestBase
     }
 
     [Fact]
+    public async Task When_a_preset_and_a_key_are_given_CreateAsync_relates_the_preset_and_sends_the_key()
+    {
+        // Arrange
+        Host.Api.EnqueueJson(HttpStatusCode.Created, EbillDocument());
+
+        var options = EbillCreateOptions() with
+        {
+            FileUrl = File.Url.ToString(),
+            FileUrlSignature = File.Signature,
+            PresetId = Ebill.PresetId
+        };
+
+        // Act
+        await Ebills.CreateAsync(Organisation.Id, options, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
+
+        // Assert
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+
+        var preset = Host.Api.Request.Data.GetProperty("relationships").GetProperty("preset").GetProperty("data");
+        preset.Assert.Has("type", "presets");
+        preset.Assert.Has("id", Ebill.PresetId.ToString());
+    }
+
+    [Fact]
     public async Task When_no_url_is_known_yet_CreateAsync_uploads_the_stream_and_posts_its_url_and_signature()
     {
         // Arrange
@@ -80,7 +125,13 @@ public class EbillServiceTests : EbillTestBase
         using var content = new MemoryStream(File.Pdf);
 
         // Act
-        await Ebills.CreateAsync(Organisation.Id, content, EbillCreateOptions(), cancellationToken: Ct);
+        await Ebills.CreateAsync(
+            Organisation.Id,
+            content,
+            EbillCreateOptions(),
+            new() { IdempotencyKey = Request.IdempotencyKey },
+            Ct
+        );
 
         // Assert
         Host.Api.Requests[0].Path.Should().Be("/file-upload");
@@ -93,6 +144,7 @@ public class EbillServiceTests : EbillTestBase
         Host.Api.Requests[1].Path.Should().Be(EbillsPath);
         Host.Api.Requests[1].Attributes.Assert.Has("file_url", File.Url.ToString());
         Host.Api.Requests[1].Attributes.Assert.Has("file_url_signature", File.Signature);
+        Host.Api.Requests[1].Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
     }
 
     [Theory]
@@ -179,11 +231,28 @@ public class EbillServiceTests : EbillTestBase
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
 
         // Act
-        await Ebills.CancelAsync(Organisation.Id, Ebill.Id, cancellationToken: Ct);
+        await Ebills.CancelAsync(Organisation.Id, Ebill.Id, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
 
         // Assert
         Host.Api.Request.Assert.Bodyless();
         Host.Api.Request.Assert.Sent(HttpMethod.Patch, $"{EbillPath}/cancel");
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task When_the_file_is_asked_for_GetFileLocationAsync_returns_the_location_unfollowed()
+    {
+        // Arrange
+        Host.Api.EnqueueRedirect(File.Location);
+
+        // Act
+        var location = await Ebills.GetFileLocationAsync(Organisation.Id, Ebill.Id, Ct);
+
+        // Assert
+        location.Should().Be(File.Location);
+
+        Host.Files.Requests.Should().BeEmpty();
+        Host.Api.Request.Path.Should().Be($"{EbillPath}/file");
     }
 
     [Fact]
@@ -214,11 +283,14 @@ public class EbillServiceTests : EbillTestBase
         // Arrange
         Host.Api.EnqueueOk(EventsDocument());
 
+        var options = new PingenListOptions { Language = "de-DE", Sort = "-emitted_at" };
+
         // Act
-        var events = await Ebills.ListEventsAsync(Organisation.Id, Ebill.Id, cancellationToken: Ct);
+        var events = await Ebills.ListEventsAsync(Organisation.Id, Ebill.Id, options, Ct);
 
         // Assert
         Host.Api.Request.Path.Should().Be($"{EbillPath}/events");
+        Host.Api.Request.Assert.Query("?sort=-emitted_at&language=de-DE");
 
         events.Should().ContainSingle();
         events[0].Attributes.Code.Should().Be("approved");
@@ -245,6 +317,22 @@ public class EbillServiceTests : EbillTestBase
 
         Host.Files.Request.Url.Should().Be(File.Location);
         Host.Files.Request.Assert.Unauthenticated();
+    }
+
+    [Fact]
+    public async Task When_an_event_image_is_asked_for_GetEventImageLocationAsync_returns_the_location_unfollowed()
+    {
+        // Arrange
+        Host.Api.EnqueueRedirect(File.Location);
+
+        // Act
+        var location = await Ebills.GetEventImageLocationAsync(Organisation.Id, Ebill.Id, Ebill.EventId, Ct);
+
+        // Assert
+        location.Should().Be(File.Location);
+
+        Host.Files.Requests.Should().BeEmpty();
+        Host.Api.Request.Path.Should().Be($"{EbillPath}/events/{Ebill.EventId}/image");
     }
 
     [Fact]

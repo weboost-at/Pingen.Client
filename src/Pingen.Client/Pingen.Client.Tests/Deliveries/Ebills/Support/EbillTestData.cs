@@ -14,6 +14,8 @@ public class EbillTestData(TestFaker faker)
 
     public Guid EventId { get; } = faker.Guid();
 
+    public Guid PresetId { get; } = faker.Guid();
+
     public string FileOriginalName { get; } = faker.PickRandom(FileNames);
 
     // Two disjoint halves of the year, so the due date never precedes the invoice date

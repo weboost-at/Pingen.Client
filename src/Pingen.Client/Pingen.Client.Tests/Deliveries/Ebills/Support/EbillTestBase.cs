@@ -21,18 +21,18 @@ public abstract class EbillTestBase : TestBase
         };
 
     protected string EbillDocument() =>
-        $$"""{ "data": {{EbillResource()}} }""";
+        $$"""{ "data": {{EbillResource(filePages: 2)}} }""";
 
-    protected string EbillPage() =>
+    protected string EbillPage(int number, int lastPage) =>
         $$"""
           {
-            "data": [ {{EbillResource(abilities: false)}} ],
-            "links": { "self": "https://api.pingen.com{{EbillsPath}}" },
-            "meta": { "current_page": 1, "last_page": 1, "per_page": 20, "from": 1, "to": 1, "total": 1 }
+            "data": [ {{EbillResource(filePages: number, abilities: false)}} ],
+            "links": { "self": "https://api.pingen.com{{EbillsPath}}?page[number]={{number}}" },
+            "meta": { "current_page": {{number}}, "last_page": {{lastPage}}, "per_page": 1, "from": {{number}}, "to": {{number}}, "total": {{lastPage}} }
           }
           """;
 
-    protected string EbillResource(bool abilities = true) =>
+    protected string EbillResource(int filePages, bool abilities = true) =>
         $$"""
           {
             "id": "{{Ebill.Id}}",
@@ -40,7 +40,7 @@ public abstract class EbillTestBase : TestBase
             "attributes": {
               "status": "submitted",
               "file_original_name": "{{Ebill.FileOriginalName}}",
-              "file_pages": 2,
+              "file_pages": {{filePages}},
               "recipient_identifier": "41100010014282213",
               "recipient_address": "ACME GmbH\nExamplestreet 432\n3000 Bern",
               "invoice_number": "Invoice 8051",
