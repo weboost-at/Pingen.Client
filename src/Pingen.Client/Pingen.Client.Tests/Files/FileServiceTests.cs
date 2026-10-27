@@ -106,4 +106,21 @@ public class FileServiceTests : FileTestBase
         Host.Files.Request.Method.Should().Be(HttpMethod.Get);
         Host.Files.Request.Assert.Unauthenticated();
     }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task When_the_presigned_url_refuses_DownloadAsync_throws_with_the_status(HttpStatusCode status)
+    {
+        // Arrange
+        Host.Files.Enqueue(StorageRejection(status));
+
+        // Act
+        var act = () => Files.DownloadAsync(File.Location, Ct);
+
+        // Assert
+        var exception = await act.Assert.ThrowsAsync(status);
+        exception.Errors.Should().BeEmpty();
+    }
 }
