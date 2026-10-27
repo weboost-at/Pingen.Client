@@ -6,6 +6,7 @@ using Pingen.Client.Tests.Deliveries.Letters.Support;
 using Pingen.Client.Tests.Files.Support;
 using Pingen.Client.Tests.Organisations.Support;
 using Pingen.Client.Tests.Users.Support;
+using Pingen.Client.Tests.Webhooks.Support;
 
 namespace Pingen.Client.Tests.Testing.Data;
 
@@ -29,4 +30,6 @@ public class TestDataCollection(TestFaker faker)
     public RequestTestData Request { get; } = new(faker);
 
     public UserTestData User { get; } = new(faker);
+
+    public WebhookTestData Webhook { get; } = new(faker);
 }
