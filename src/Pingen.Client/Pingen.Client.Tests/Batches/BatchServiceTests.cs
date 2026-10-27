@@ -121,7 +121,13 @@ public class BatchServiceTests : BatchTestBase
         using var content = new MemoryStream(Batch.Archive);
 
         // Act
-        var batch = await Batches.CreateAsync(Organisation.Id, content, BatchCreateOptions(), cancellationToken: Ct);
+        var batch = await Batches.CreateAsync(
+            Organisation.Id,
+            content,
+            BatchCreateOptions(),
+            new() { IdempotencyKey = Request.IdempotencyKey },
+            Ct
+        );
 
         // Assert
         batch.Id.Should().Be(Batch.Id);
@@ -135,6 +141,7 @@ public class BatchServiceTests : BatchTestBase
         Host.Api.Requests[1].Path.Should().Be(BatchesPath);
         Host.Api.Requests[1].Attributes.Assert.Has("file_url", File.Url.ToString());
         Host.Api.Requests[1].Attributes.Assert.Has("file_url_signature", File.Signature);
+        Host.Api.Requests[1].Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
     }
 
     [Theory]
@@ -196,11 +203,12 @@ public class BatchServiceTests : BatchTestBase
         };
 
         // Act
-        await Batches.EditAsync(Organisation.Id, Batch.Id, options, cancellationToken: Ct);
+        await Batches.EditAsync(Organisation.Id, Batch.Id, options, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
 
         // Assert
         Host.Api.Request.Assert.Sent(HttpMethod.Patch, BatchPath);
         Host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
 
         Host.Api.Request.Data.Assert.Has("type", "batches");
         Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
@@ -265,12 +273,14 @@ public class BatchServiceTests : BatchTestBase
         var options = BatchSendOptions.Post(DeliveryProduct.Fast, PrintMode.Simplex, PrintSpectrum.Color);
 
         // Act
-        var batch = await Batches.SendAsync(Organisation.Id, Batch.Id, options, cancellationToken: Ct);
+        var batch = await Batches.SendAsync(Organisation.Id, Batch.Id, options, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
 
         // Assert
         batch.Attributes.Status.Should().Be("processing");
 
         Host.Api.Request.Assert.Sent(HttpMethod.Patch, $"{BatchPath}/send");
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+
         Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
         Host.Api.Request.Data.Assert.Has("type", "batches_channel_post_send");
         Host.Api.Request.Attributes.Assert.Has("print_mode", "simplex");
