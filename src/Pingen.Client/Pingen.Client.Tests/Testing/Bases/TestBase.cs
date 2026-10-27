@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Pingen.Client.Options;
 using Pingen.Client.Tests.Common.Support;
 using Pingen.Client.Tests.Files.Support;
+using Pingen.Client.Tests.Organisations.Support;
 
 namespace Pingen.Client.Tests.Testing.Bases;
 
@@ -14,6 +15,8 @@ public abstract class TestBase : UnitTestBase, IDisposable
     protected ErrorTestData Error => Data.Error;
 
     protected FileTestData File => Data.File;
+
+    protected OrganisationTestData Organisation => Data.Organisation;
 
     protected RequestTestData Request => Data.Request;
 

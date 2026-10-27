@@ -1,13 +1,10 @@
 using Pingen.Client.Deliveries.Letters;
-using Pingen.Client.Tests.Organisations.Support;
 
 namespace Pingen.Client.Tests.Deliveries.Letters.Support;
 
 public abstract class LetterTestBase : TestBase
 {
     protected LetterTestData Letter => Data.Letter;
-
-    protected OrganisationTestData Organisation => Data.Organisation;
 
     protected LetterService Letters => Resolve<LetterService>();
 
