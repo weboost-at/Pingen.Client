@@ -137,19 +137,29 @@ public class BatchServiceTests : BatchTestBase
         Host.Api.Requests[1].Attributes.Assert.Has("file_url_signature", File.Signature);
     }
 
-    [Fact]
-    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream()
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream(bool url, bool signature)
     {
         // Arrange
         using var content = new MemoryStream(Batch.Archive);
 
-        var options = BatchCreateOptions() with { FileUrl = File.Url.ToString() };
+        var options = BatchCreateOptions() with
+        {
+            FileUrl = url ? File.Url.ToString() : null,
+            FileUrlSignature = signature ? File.Signature : null
+        };
 
         // Act
         var act = () => Batches.CreateAsync(Organisation.Id, content, options, cancellationToken: Ct);
 
         // Assert
-        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("options");
+        await act.Should()
+            .ThrowAsync<ArgumentException>()
+            .WithParameterName("options")
+            .WithMessage("This overload uploads the file itself and fills FileUrl and FileUrlSignature - leave both unset.*");
 
         Host.Api.Requests.Should().BeEmpty();
         Host.Files.Requests.Should().BeEmpty();
