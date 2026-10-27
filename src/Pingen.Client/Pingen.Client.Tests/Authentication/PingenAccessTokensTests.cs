@@ -23,6 +23,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
         token.Should().Be(PingenTestHost.AccessToken);
 
         Host.Identity.Request.Method.Should().Be(HttpMethod.Post);
+        Host.Identity.Request.Header("Accept").Should().Be("application/json");
         Host.Identity.Request.Url.Should().Be(new Uri("https://identity.pingen.com/auth/access-tokens"));
         Host.Identity.Request.Header("Content-Type").Should().Be("application/x-www-form-urlencoded");
         Host.Identity.Request.Text.Should().Be(
@@ -55,6 +56,19 @@ public class PingenAccessTokensTests : AuthenticationTestBase
 
         // Assert
         Host.Identity.Request.Url.Host.Should().Be("identity-staging.pingen.com");
+    }
+
+    [Fact]
+    public async Task When_an_identity_address_is_configured_GetAsync_posts_to_it_instead()
+    {
+        // Arrange
+        HostWith(options => options.IdentityAddress = Data.Options.IdentityAddress);
+
+        // Act
+        await Tokens.GetAsync(Ct);
+
+        // Assert
+        Host.Identity.Request.Url.Should().Be(new Uri(Data.Options.IdentityAddress, "auth/access-tokens"));
     }
 
     [Fact]
