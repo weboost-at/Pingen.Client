@@ -35,6 +35,33 @@ public class PingenDateTimeConverterTests : UnitTestBase
     public void Given_An_Absent_Nullable_Timestamp_Read_Returns_Null(string wire) =>
         JsonSerializer.Deserialize<DateTimeOffset?>(wire, PingenJson.Options).Should().BeNull();
 
+    [Theory]
+    [InlineData("null")]
+    [InlineData("\"\"")]
+    [InlineData("\"gestern\"")]
+    [InlineData("\"2021-13-45T09:42:48+0100\"")]
+    [InlineData("\"2021-11-19T09:42:48+2500\"")]
+    public void Given_No_Timestamp_Read_Throws_A_JsonException_Naming_Its_Path(string wire)
+    {
+        // Act
+        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset>>($$"""{"created_at":{{wire}}}""", PingenJson.Options);
+
+        // Assert
+        read.Should().Throw<JsonException>().Where(exception => exception.Path == "$.created_at");
+    }
+
+    [Theory]
+    [InlineData("\"gestern\"")]
+    [InlineData("\"2021-13-45T09:42:48+0100\"")]
+    public void Given_No_Timestamp_A_Nullable_Read_Throws_A_JsonException_Naming_Its_Path(string wire)
+    {
+        // Act
+        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset?>>($$"""{"sent_at":{{wire}}}""", PingenJson.Options);
+
+        // Assert
+        read.Should().Throw<JsonException>().Where(exception => exception.Path == "$.sent_at");
+    }
+
     [Fact]
     public void Write_Uses_The_Pingen_Wire_Format()
     {
