@@ -1,522 +1,355 @@
 using System.Net;
-using System.Text;
 using FluentAssertions;
 using Pingen.Client.Batches;
 using Pingen.Client.Batches.ValueTypes;
 using Pingen.Client.Common;
 using Pingen.Client.Deliveries.ValueTypes;
+using Pingen.Client.Tests.Batches.Support;
 
 namespace Pingen.Client.Tests.Batches;
 
-public class BatchServiceTests
+public class BatchServiceTests : BatchTestBase
 {
-    private static readonly Guid Organisation = Guid.Parse("6c3d1f0a-1111-4000-8000-000000000001");
-
-    private static readonly Guid BatchId = Guid.Parse("2a4c9e77-2222-4000-8000-000000000002");
-
-    private static readonly Guid PresetId = Guid.Parse("7f0b2c55-4444-4000-8000-000000000004");
-
-    private const string BatchesPath = "/organisations/6c3d1f0a-1111-4000-8000-000000000001/batches";
-
-    private const string BatchPath = $"{BatchesPath}/2a4c9e77-2222-4000-8000-000000000002";
-
-    private static readonly byte[] Archive = "PK Zürich"u8.ToArray();
-
     [Fact]
     public async Task When_a_page_is_requested_ListAsync_gets_the_batches_path_with_the_query_and_maps_the_page()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(PageJson(1, 2));
+        Host.Api.EnqueueOk(BatchPage(number: 1, lastPage: 2));
+
         var options = new PingenListOptions
         {
             PageNumber = 1,
             PageLimit = 1,
             Sort = "-created_at",
             Filter = PingenFilter.Where("status", "processing"),
-            Fields = new Dictionary<string, string> { ["batches"] = "name,status" },
+            Fields = new Dictionary<string, string> { ["batches"] = "name,status" }
         };
 
         // Act
-        var page = await new BatchService(host.Client).ListAsync(Organisation, options, TestContext.Current.CancellationToken);
+        var page = await Batches.ListAsync(Organisation.Id, options, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be(BatchesPath);
-        Uri.UnescapeDataString(host.Api.Request.Query).Should()
-            .Be("""?page[number]=1&page[limit]=1&sort=-created_at&filter={"status":"processing"}&fields[batches]=name,status""");
-        var batch = page.Should().ContainSingle().Which;
-        batch.Attributes.Icon.Should().Be("wave-hand");
-        batch.Attributes.ChannelType.Should().Be("post");
-        batch.Attributes.SubmittedAt.Should().BeNull();
-        batch.Relationships!.Events!.Count.Should().Be(3);
-        batch.Meta.Should().BeNull();
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, BatchesPath);
+        Host.Api.Request.Assert.Query(
+            """?page[number]=1&page[limit]=1&sort=-created_at&filter={"status":"processing"}&fields[batches]=name,status""");
+
+        page.Should().ContainSingle();
+        page[0].Meta.Should().BeNull();
+        page[0].Attributes.Icon.Should().Be("wave-hand");
+        page[0].Attributes.ChannelType.Should().Be("post");
+        page[0].Attributes.SubmittedAt.Should().BeNull();
+        page[0].Relationships!.Events!.Count.Should().Be(3);
         page.Meta!.Total.Should().Be(2);
         page.Links!.Next.Should().Be($"https://api.pingen.com{BatchesPath}?page[number]=2");
     }
 
     [Fact]
-    public async Task Given_a_collection_spanning_two_pages_When_it_is_enumerated_ListAutoPagingAsync_yields_every_batch_and_stops_at_the_last_page()
+    public async Task When_two_pages_are_enumerated_ListAutoPagingAsync_yields_both_and_stops_at_the_last()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(PageJson(1, 2)).EnqueueOk(PageJson(2, 2));
+        Host.Api.EnqueueOk(BatchPage(number: 1, lastPage: 2)).EnqueueOk(BatchPage(number: 2, lastPage: 2));
 
         // Act
-        var batches = await new BatchService(host.Client)
-            .ListAutoPagingAsync(Organisation, new() { PageLimit = 1 }, TestContext.Current.CancellationToken)
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var batches = await Batches
+            .ListAutoPagingAsync(Organisation.Id, new() { PageLimit = 1 }, Ct)
+            .ToListAsync(Ct);
 
         // Assert
         batches.Select(batch => batch.Attributes.LetterCount).Should().Equal(1, 2);
-        host.Api.Requests.Should().HaveCount(2);
-        Uri.UnescapeDataString(host.Api.Requests[0].Query).Should().Be("?page[limit]=1");
-        Uri.UnescapeDataString(host.Api.Requests[1].Query).Should().Be("?page[number]=2&page[limit]=1");
+
+        Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Assert.Query("?page[limit]=1");
+        Host.Api.Requests[1].Assert.Query("?page[number]=2&page[limit]=1");
     }
 
     [Fact]
-    public async Task When_the_archive_was_uploaded_already_CreateAsync_posts_the_batches_envelope_with_the_grouping_options_and_the_preset()
+    public async Task When_the_archive_is_uploaded_already_CreateAsync_posts_the_grouping_options_and_preset()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueJson(HttpStatusCode.Created, SingleJson());
+        Host.Api.EnqueueJson(HttpStatusCode.Created, BatchDocument());
+
+        var options = new BatchCreateOptions
+        {
+            Name = Batch.Name,
+            Icon = BatchIcon.WaveHand,
+            FileOriginalName = Batch.FileOriginalName,
+            FileUrl = File.Url.ToString(),
+            FileUrlSignature = File.Signature,
+            GroupingType = BatchGroupingType.Merge,
+            SplitType = BatchSplitType.QrInvoice,
+            ChannelType = BatchChannelType.Post,
+            AddressPosition = AddressPosition.Right,
+            SplitSize = 2,
+            SplitSeparator = Batch.SplitSeparator,
+            SplitPosition = BatchSplitPosition.FirstPage,
+            PresetId = Batch.PresetId
+        };
 
         // Act
-        var batch = await new BatchService(host.Client).CreateAsync(
-            Organisation,
-            new()
-            {
-                Name = "Rechnungslauf Zürich",
-                Icon = BatchIcon.WaveHand,
-                FileOriginalName = "lörem.zip",
-                FileUrl = "https://s3.example.com/bucket/934b6a01.zip?signer=url",
-                FileUrlSignature = "$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV",
-                GroupingType = BatchGroupingType.Merge,
-                SplitType = BatchSplitType.QrInvoice,
-                ChannelType = BatchChannelType.Post,
-                AddressPosition = AddressPosition.Right,
-                SplitSize = 2,
-                SplitSeparator = "Trennblatt",
-                SplitPosition = BatchSplitPosition.FirstPage,
-                PresetId = PresetId,
-            },
-            new PingenRequestOptions { IdempotencyKey = "b3f1a2c4-5555-4000-8000-000000000005" },
-            TestContext.Current.CancellationToken
-        );
+        var batch = await Batches.CreateAsync(Organisation.Id, options, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
 
         // Assert
-        var request = host.Api.Request;
-        request.Method.Should().Be(HttpMethod.Post);
-        request.Path.Should().Be(BatchesPath);
-        request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
-        request.Header("Idempotency-Key").Should().Be("b3f1a2c4-5555-4000-8000-000000000005");
-        var data = request.Json.GetProperty("data");
-        data.GetProperty("type").GetString().Should().Be("batches");
-        data.TryGetProperty("id", out _).Should().BeFalse();
-        var attributes = data.GetProperty("attributes");
-        attributes.GetProperty("name").GetString().Should().Be("Rechnungslauf Zürich");
-        attributes.GetProperty("icon").GetString().Should().Be("wave-hand");
-        attributes.GetProperty("grouping_type").GetString().Should().Be("merge");
-        attributes.GetProperty("grouping_options_split_type").GetString().Should().Be("qr_invoice");
-        attributes.GetProperty("grouping_options_split_size").GetInt32().Should().Be(2);
-        attributes.GetProperty("grouping_options_split_position").GetString().Should().Be("first_page");
-        attributes.GetProperty("channel_type").GetString().Should().Be("post");
-        attributes.GetProperty("address_position").GetString().Should().Be("right");
-        data.GetProperty("relationships").GetProperty("preset").GetProperty("data").GetProperty("id").GetString().Should().Be(PresetId.ToString());
-        batch.Id.Should().Be(BatchId);
+        batch.Id.Should().Be(Batch.Id);
+
+        Host.Api.Request.Assert.Sent(HttpMethod.Post, BatchesPath);
+        Host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+
+        Host.Api.Request.Data.Assert.Lacks("id");
+        Host.Api.Request.Data.Assert.Has("type", "batches");
+        Host.Api.Request.Attributes.Assert.Has("icon", "wave-hand");
+        Host.Api.Request.Attributes.Assert.Has("channel_type", "post");
+        Host.Api.Request.Attributes.Assert.Has("grouping_type", "merge");
+        Host.Api.Request.Attributes.Assert.Has("name", Batch.Name.Default);
+        Host.Api.Request.Attributes.Assert.Has("address_position", "right");
+        Host.Api.Request.Attributes.Assert.Has("grouping_options_split_type", "qr_invoice");
+        Host.Api.Request.Attributes.Assert.Has("grouping_options_split_position", "first_page");
+        Host.Api.Request.Attributes.Assert.Has("grouping_options_split_separator", Batch.SplitSeparator);
+        Host.Api.Request.Attributes.GetProperty("grouping_options_split_size").GetInt32().Should().Be(2);
+
+        var preset = Host.Api.Request.Data.GetProperty("relationships").GetProperty("preset").GetProperty("data");
+        preset.Assert.Has("id", Batch.PresetId.ToString());
     }
 
     [Fact]
-    public async Task When_a_stream_is_given_CreateAsync_requests_an_upload_target_puts_the_raw_bytes_and_posts_the_copied_url()
+    public async Task When_a_stream_is_given_CreateAsync_uploads_it_and_posts_the_presigned_url()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(UploadJson).EnqueueJson(HttpStatusCode.Created, SingleJson());
-        host.Files.EnqueueEmpty(HttpStatusCode.OK);
-        using var content = new MemoryStream(Archive);
+        Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, BatchDocument());
+        Host.Files.EnqueueEmpty(HttpStatusCode.OK);
+
+        using var content = new MemoryStream(Batch.Archive);
 
         // Act
-        var batch = await new BatchService(host.Client).CreateAsync(
-            Organisation,
-            content,
-            CreateOptions,
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var batch = await Batches.CreateAsync(Organisation.Id, content, BatchCreateOptions(), cancellationToken: Ct);
 
         // Assert
-        host.Api.Requests[0].Path.Should().Be("/file-upload");
-        host.Files.Request.Method.Should().Be(HttpMethod.Put);
-        host.Files.Request.Body.Should().Equal(Archive);
-        host.Files.Request.Header("Authorization").Should().BeNull();
-        var attributes = host.Api.Requests[1].Json.GetProperty("data").GetProperty("attributes");
-        host.Api.Requests[1].Path.Should().Be(BatchesPath);
-        attributes.GetProperty("file_url").GetString().Should().Be("https://s3.example.com/bucket/934b6a01.zip?signer=url");
-        attributes.GetProperty("file_url_signature").GetString().Should().Be("$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV");
-        batch.Id.Should().Be(BatchId);
+        batch.Id.Should().Be(Batch.Id);
+
+        Host.Api.Requests[0].Path.Should().Be("/file-upload");
+
+        Host.Files.Request.Body.Should().Equal(Batch.Archive);
+        Host.Files.Request.Method.Should().Be(HttpMethod.Put);
+        Host.Files.Request.Assert.Unauthenticated();
+
+        Host.Api.Requests[1].Path.Should().Be(BatchesPath);
+        Host.Api.Requests[1].Attributes.Assert.Has("file_url", File.Url.ToString());
+        Host.Api.Requests[1].Attributes.Assert.Has("file_url_signature", File.Signature);
     }
 
     [Fact]
-    public async Task When_the_options_already_carry_an_upload_target_the_stream_overload_of_CreateAsync_refuses_the_call()
+    public async Task When_the_options_carry_an_upload_target_CreateAsync_refuses_the_stream()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        using var content = new MemoryStream(Archive);
+        using var content = new MemoryStream(Batch.Archive);
+
+        var options = BatchCreateOptions() with { FileUrl = File.Url.ToString() };
 
         // Act
-        var act = () => new BatchService(host.Client).CreateAsync(
-            Organisation,
-            content,
-            CreateOptions with { FileUrl = "https://s3.example.com/bucket/934b6a01.zip" },
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var act = () => Batches.CreateAsync(Organisation.Id, content, options, cancellationToken: Ct);
 
         // Assert
-        (await act.Should().ThrowAsync<ArgumentException>()).Which.ParamName.Should().Be("options");
-        host.Api.Requests.Should().BeEmpty();
-        host.Files.Requests.Should().BeEmpty();
+        await act.Should().ThrowAsync<ArgumentException>().WithParameterName("options");
+
+        Host.Api.Requests.Should().BeEmpty();
+        Host.Files.Requests.Should().BeEmpty();
     }
 
     [Fact]
     public async Task When_a_single_batch_is_requested_GetAsync_gets_its_path_and_maps_the_abilities()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(SingleJson());
+        Host.Api.EnqueueOk(BatchDocument());
 
         // Act
-        var batch = await new BatchService(host.Client).GetAsync(Organisation, BatchId, TestContext.Current.CancellationToken);
+        var batch = await Batches.GetAsync(Organisation.Id, Batch.Id, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be(BatchPath);
-        host.Api.Request.Query.Should().BeEmpty();
-        host.Api.Request.Header("Authorization").Should().Be($"Bearer {PingenTestHost.AccessToken}");
-        batch.Meta!.Abilities!["cancel"].Should().Be("ok");
+        Host.Api.Request.Query.Should().BeEmpty();
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, BatchPath);
+        Host.Api.Request.Header("Authorization").Should().Be($"Bearer {PingenTestHost.AccessToken}");
+
         batch.Attributes.PriceValue.Should().Be(1.25m);
+        batch.Meta!.Abilities!["cancel"].Should().Be("ok");
     }
 
     [Fact]
     public async Task When_a_batch_is_renamed_EditAsync_patches_its_path_with_the_id_repeated_in_the_body()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+        Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+
+        var options = new BatchEditOptions
+        {
+            Name = Batch.Name.Updated,
+            Icon = BatchIcon.PercentTag
+        };
 
         // Act
-        await new BatchService(host.Client).EditAsync(
-            Organisation,
-            BatchId,
-            new() { Name = "Rechnungslauf Zürich", Icon = BatchIcon.PercentTag },
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        await Batches.EditAsync(Organisation.Id, Batch.Id, options, cancellationToken: Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Patch);
-        host.Api.Request.Path.Should().Be(BatchPath);
-        host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
-        var data = host.Api.Request.Json.GetProperty("data");
-        data.GetProperty("type").GetString().Should().Be("batches");
-        data.GetProperty("id").GetString().Should().Be(BatchId.ToString());
-        data.GetProperty("attributes").GetProperty("name").GetString().Should().Be("Rechnungslauf Zürich");
-        data.GetProperty("attributes").GetProperty("icon").GetString().Should().Be("percent-tag");
+        Host.Api.Request.Assert.Sent(HttpMethod.Patch, BatchPath);
+        Host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
+
+        Host.Api.Request.Data.Assert.Has("type", "batches");
+        Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
+        Host.Api.Request.Attributes.Assert.Has("icon", "percent-tag");
+        Host.Api.Request.Attributes.Assert.Has("name", Batch.Name.Updated);
     }
 
     [Fact]
     public async Task When_a_batch_is_deleted_DeleteAsync_sends_the_required_body_along_with_the_delete()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty();
+        Host.Api.EnqueueEmpty();
 
         // Act
-        await new BatchService(host.Client).DeleteAsync(
-            Organisation,
-            BatchId,
-            new() { WithLetters = true, WithDeliverables = false },
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        await Batches.DeleteAsync(Organisation.Id, Batch.Id, new() { WithLetters = true, WithDeliverables = false }, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Delete);
-        host.Api.Request.Path.Should().Be(BatchPath);
-        host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
-        var data = host.Api.Request.Json.GetProperty("data");
-        data.GetProperty("type").GetString().Should().Be("batches");
-        data.GetProperty("id").GetString().Should().Be(BatchId.ToString());
-        data.GetProperty("attributes").GetProperty("with_letters").GetBoolean().Should().BeTrue();
-        data.GetProperty("attributes").GetProperty("with_deliverables").GetBoolean().Should().BeFalse();
+        Host.Api.Request.Assert.Sent(HttpMethod.Delete, BatchPath);
+        Host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
+
+        Host.Api.Request.Data.Assert.Has("type", "batches");
+        Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
+        Host.Api.Request.Attributes.GetProperty("with_letters").GetBoolean().Should().BeTrue();
+        Host.Api.Request.Attributes.GetProperty("with_deliverables").GetBoolean().Should().BeFalse();
     }
 
     [Fact]
     public async Task When_only_the_batch_is_deleted_DeleteAsync_omits_the_deliverables_flag()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty();
+        Host.Api.EnqueueEmpty();
 
         // Act
-        await new BatchService(host.Client).DeleteAsync(
-            Organisation,
-            BatchId,
-            new() { WithLetters = false },
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        await Batches.DeleteAsync(Organisation.Id, Batch.Id, new() { WithLetters = false }, Ct);
 
         // Assert
-        var attributes = host.Api.Request.Json.GetProperty("data").GetProperty("attributes");
-        attributes.GetProperty("with_letters").GetBoolean().Should().BeFalse();
-        attributes.TryGetProperty("with_deliverables", out _).Should().BeFalse();
+        Host.Api.Request.Attributes.Assert.Lacks("with_deliverables");
+        Host.Api.Request.Attributes.GetProperty("with_letters").GetBoolean().Should().BeFalse();
     }
 
     [Fact]
     public async Task When_a_batch_is_cancelled_CancelAsync_patches_the_cancel_path_without_a_body()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+        Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
 
         // Act
-        await new BatchService(host.Client).CancelAsync(
-            Organisation,
-            BatchId,
-            new PingenRequestOptions { IdempotencyKey = "b3f1a2c4-5555-4000-8000-000000000005" },
-            TestContext.Current.CancellationToken
-        );
+        await Batches.CancelAsync(Organisation.Id, Batch.Id, new() { IdempotencyKey = Request.IdempotencyKey }, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Patch);
-        host.Api.Request.Path.Should().Be($"{BatchPath}/cancel");
-        host.Api.Request.Body.Should().BeEmpty();
-        host.Api.Request.Header("Idempotency-Key").Should().Be("b3f1a2c4-5555-4000-8000-000000000005");
+        Host.Api.Request.Assert.Bodyless();
+        Host.Api.Request.Assert.Sent(HttpMethod.Patch, $"{BatchPath}/cancel");
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+    }
+
+    [Fact]
+    public async Task When_a_batch_is_sent_by_post_SendAsync_patches_the_send_path_with_the_print_options()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(BatchDocument());
+
+        var options = BatchSendOptions.Post(DeliveryProduct.Fast, PrintMode.Simplex, PrintSpectrum.Color);
+
+        // Act
+        var batch = await Batches.SendAsync(Organisation.Id, Batch.Id, options, cancellationToken: Ct);
+
+        // Assert
+        batch.Attributes.Status.Should().Be("processing");
+
+        Host.Api.Request.Assert.Sent(HttpMethod.Patch, $"{BatchPath}/send");
+        Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
+        Host.Api.Request.Data.Assert.Has("type", "batches_channel_post_send");
+        Host.Api.Request.Attributes.Assert.Has("print_mode", "simplex");
+        Host.Api.Request.Attributes.Assert.Has("print_spectrum", "color");
+        Host.Api.Request.Attributes.Assert.Has("delivery_product", "fast");
     }
 
     [Theory]
-    [InlineData("post", "batches_channel_post_send", "fast")]
-    [InlineData("email", "batches_channel_email_send", "electronic_email")]
-    [InlineData("ebill", "batches_channel_ebill_send", "electronic_ebill")]
-    public async Task When_a_batch_is_sent_SendAsync_patches_the_send_path_with_the_type_of_the_channel_and_the_id_repeated(string channel, string type, string product)
+    [InlineData("batches_channel_email_send", "electronic_email")]
+    [InlineData("batches_channel_ebill_send", "electronic_ebill")]
+    public async Task When_a_batch_is_sent_electronically_SendAsync_omits_print_options(string type, string product)
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(SingleJson());
-        var options = channel switch
-        {
-            "post" => BatchSendOptions.Post(DeliveryProduct.Fast, PrintMode.Simplex, PrintSpectrum.Color),
-            "email" => BatchSendOptions.Email(),
-            _ => BatchSendOptions.Ebill(),
-        };
+        Host.Api.EnqueueOk(BatchDocument());
+
+        var options = type is "batches_channel_email_send" ? BatchSendOptions.Email() : BatchSendOptions.Ebill();
 
         // Act
-        var batch = await new BatchService(host.Client).SendAsync(Organisation, BatchId, options, cancellationToken: TestContext.Current.CancellationToken);
+        var batch = await Batches.SendAsync(Organisation.Id, Batch.Id, options, cancellationToken: Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Patch);
-        host.Api.Request.Path.Should().Be($"{BatchPath}/send");
-        var data = host.Api.Request.Json.GetProperty("data");
-        data.GetProperty("type").GetString().Should().Be(type);
-        data.GetProperty("id").GetString().Should().Be(BatchId.ToString());
-        var attributes = data.GetProperty("attributes");
-        attributes.GetProperty("delivery_product").GetString().Should().Be(product);
-        attributes.TryGetProperty("print_mode", out var printMode).Should().Be(channel is "post");
-        if (channel is "post") printMode.GetString().Should().Be("simplex");
         batch.Attributes.Status.Should().Be("processing");
+
+        Host.Api.Request.Assert.Sent(HttpMethod.Patch, $"{BatchPath}/send");
+        Host.Api.Request.Data.Assert.Has("type", type);
+        Host.Api.Request.Data.Assert.Has("id", Batch.Id.ToString());
+        Host.Api.Request.Attributes.Assert.Lacks("print_mode");
+        Host.Api.Request.Attributes.Assert.Lacks("print_spectrum");
+        Host.Api.Request.Attributes.Assert.Has("delivery_product", product);
     }
 
     [Fact]
-    public async Task When_the_events_of_a_batch_are_listed_ListEventsAsync_gets_the_events_path_with_the_language()
+    public async Task When_the_events_of_a_batch_are_listed_ListEventsAsync_sends_the_language()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(EventsJson);
+        Host.Api.EnqueueOk(EventsDocument());
 
         // Act
-        var events = await new BatchService(host.Client).ListEventsAsync(
-            Organisation,
-            BatchId,
-            new() { Language = "de-DE", Sort = "-emitted_at" },
-            TestContext.Current.CancellationToken
-        );
+        var events = await Batches.ListEventsAsync(Organisation.Id, Batch.Id, new() { Language = "de-DE", Sort = "-emitted_at" }, Ct);
 
         // Assert
-        host.Api.Request.Path.Should().Be($"{BatchPath}/events");
-        Uri.UnescapeDataString(host.Api.Request.Query).Should().Be("?sort=-emitted_at&language=de-DE");
-        var @event = events.Should().ContainSingle().Which;
-        @event.Type.Should().Be("batches_events");
-        @event.Attributes.Code.Should().Be("processing");
-        @event.Attributes.Data.Should().Equal("split");
-        @event.Attributes.EmittedAt.Should().Be(new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
-        @event.Relationships!.Batch!.Data!.Type.Should().Be("batches");
+        Host.Api.Request.Path.Should().Be($"{BatchPath}/events");
+        Host.Api.Request.Assert.Query("?sort=-emitted_at&language=de-DE");
+
+        events.Should().ContainSingle();
+        events[0].Type.Should().Be("batches_events");
+        events[0].Attributes.Code.Should().Be("processing");
+        events[0].Attributes.Data.Should().Equal("split");
+        events[0].Relationships!.Batch!.Data!.Type.Should().Be("batches");
+        events[0].Attributes.EmittedAt.Should().Be(new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
     }
 
     [Fact]
-    public async Task When_the_statistics_are_requested_GetStatisticsAsync_gets_the_statistics_path_and_maps_the_distributions()
+    public async Task When_the_statistics_are_requested_GetStatisticsAsync_maps_the_distributions()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(StatisticsJson);
+        Host.Api.EnqueueOk(StatisticsDocument());
 
         // Act
-        var statistics = await new BatchService(host.Client).GetStatisticsAsync(Organisation, BatchId, TestContext.Current.CancellationToken);
+        var statistics = await Batches.GetStatisticsAsync(Organisation.Id, Batch.Id, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be($"{BatchPath}/statistics");
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, $"{BatchPath}/statistics");
+
         statistics.Type.Should().Be("batch_details_statistics");
         statistics.Attributes.LetterValidating.Should().Be(2);
         statistics.Attributes.LetterGroups.Select(group => group.Name).Should().Equal("valid", "not_available");
-        statistics.Attributes.LetterCountries.Should().ContainSingle().Which.Country.Should().Be("CH");
-        statistics.Attributes.LetterRegions.Should().ContainSingle().Which.Count.Should().Be(3);
+
+        statistics.Attributes.LetterCountries.Should().ContainSingle();
+        statistics.Attributes.LetterCountries[0].Country.Should().Be("CH");
+
+        statistics.Attributes.LetterRegions.Should().ContainSingle();
+        statistics.Attributes.LetterRegions[0].Count.Should().Be(3);
     }
 
     [Fact]
-    public async Task When_the_api_rejects_the_batch_CreateAsync_throws_with_the_parsed_errors_and_the_request_id()
+    public async Task When_the_api_rejects_the_batch_CreateAsync_throws_with_the_errors_and_the_request_id()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        var response = new HttpResponseMessage(HttpStatusCode.UnprocessableEntity)
-        {
-            Content = new StringContent(ErrorsJson, Encoding.UTF8, PingenClient.JsonApiMediaType),
-        };
-        response.Headers.Add("X-Request-Id", "3d1f0a6c-6666-4000-8000-000000000006");
-        host.Api.Enqueue(response);
+        Host.Api.Enqueue(Rejection(HttpStatusCode.UnprocessableEntity));
 
         // Act
-        var act = () => new BatchService(host.Client).CreateAsync(Organisation, CreateOptions, cancellationToken: TestContext.Current.CancellationToken);
+        var act = () => Batches.CreateAsync(Organisation.Id, BatchCreateOptions(), cancellationToken: Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
-        exception.RequestId.Should().Be("3d1f0a6c-6666-4000-8000-000000000006");
-        exception.Errors.Should().ContainSingle().Which.Source!.Pointer.Should().Be("/data/attributes/name");
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.UnprocessableEntity);
         exception.Message.Should().Contain("422");
+        exception.RequestId.Should().Be(Request.Id);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Source!.Pointer.Should().Be(Error.Pointer);
     }
-
-    private static BatchCreateOptions CreateOptions =>
-        new()
-        {
-            Name = "Rechnungslauf Zürich",
-            Icon = BatchIcon.WaveHand,
-            FileOriginalName = "lörem.zip",
-            GroupingType = BatchGroupingType.Zip,
-            SplitType = BatchSplitType.File,
-        };
-
-    private static string SingleJson() => $$"""{ "data": {{BatchJson(2, withMeta: true)}} }""";
-
-    private static string PageJson(int number, int lastPage) =>
-        $$"""
-          {
-            "data": [ {{BatchJson(number, withMeta: false)}} ],
-            "links": {
-              "first": "https://api.pingen.com{{BatchesPath}}?page[number]=1",
-              "last": "https://api.pingen.com{{BatchesPath}}?page[number]={{lastPage}}",
-              "next": "https://api.pingen.com{{BatchesPath}}?page[number]=2",
-              "self": "https://api.pingen.com{{BatchesPath}}?page[number]={{number}}"
-            },
-            "meta": { "current_page": {{number}}, "last_page": {{lastPage}}, "per_page": 1, "from": {{number}}, "to": {{number}}, "total": 2 }
-          }
-          """;
-
-    private static string BatchJson(int letters, bool withMeta) =>
-        $$"""
-          {
-            "id": "2a4c9e77-2222-4000-8000-000000000002",
-            "type": "batches",
-            "attributes": {
-              "name": "Rechnungslauf Zürich",
-              "channel_type": "post",
-              "icon": "wave-hand",
-              "status": "processing",
-              "file_original_name": "lörem.zip",
-              "letter_count": {{letters}},
-              "deliverable_count": {{letters}},
-              "address_position": "left",
-              "print_mode": "simplex",
-              "print_spectrum": "color",
-              "price_currency": "CHF",
-              "price_value": 1.25,
-              "source": "api",
-              "submitted_at": "",
-              "created_at": "2020-11-19T09:42:48+0100",
-              "updated_at": "2020-11-20T10:00:00+0100"
-            },
-            "relationships": {
-              "organisation": { "data": { "id": "6c3d1f0a-1111-4000-8000-000000000001", "type": "organisations" } },
-              "events": { "links": { "related": { "href": "https://api.pingen.com/events", "meta": { "count": 3 } } } }
-            },
-            "links": { "self": "https://api.pingen.com{{BatchPath}}" }{{(withMeta ? AbilitiesJson : string.Empty)}}
-          }
-          """;
-
-    private const string AbilitiesJson = """
-                                         , "meta": { "abilities": { "self": { "cancel": "ok", "delete": "state" } } }
-                                         """;
-
-    private const string UploadJson = """
-                                      {
-                                        "data": {
-                                          "id": "934b6a01-a0e6-4b03-8b9a-2a0b1d5b2c7e",
-                                          "type": "file_uploads",
-                                          "attributes": {
-                                            "url": "https://s3.example.com/bucket/934b6a01.zip?signer=url",
-                                            "url_signature": "$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV",
-                                            "expires_at": "2021-11-19T09:42:48+0100"
-                                          }
-                                        }
-                                      }
-                                      """;
-
-    private const string EventsJson = """
-                                      {
-                                        "data": [
-                                          {
-                                            "id": "934b6a01-3333-4000-8000-000000000003",
-                                            "type": "batches_events",
-                                            "attributes": {
-                                              "code": "processing",
-                                              "name": "Wird verarbeitet",
-                                              "producer": "Pingen",
-                                              "location": "8051 Zürich, CH",
-                                              "data": ["split"],
-                                              "emitted_at": "2021-11-19T09:42:48+0100",
-                                              "created_at": "2021-11-19T09:42:48+0100",
-                                              "updated_at": "2021-11-19T09:42:48+0100"
-                                            },
-                                            "relationships": {
-                                              "batch": { "data": { "id": "2a4c9e77-2222-4000-8000-000000000002", "type": "batches" } }
-                                            }
-                                          }
-                                        ],
-                                        "meta": { "current_page": 1, "last_page": 1, "per_page": 20, "from": 1, "to": 1, "total": 1 }
-                                      }
-                                      """;
-
-    private const string StatisticsJson = """
-                                          {
-                                            "data": {
-                                              "id": "2a4c9e77-2222-4000-8000-000000000002",
-                                              "type": "batch_details_statistics",
-                                              "attributes": {
-                                                "letter_validating": 2,
-                                                "letter_groups": [{ "name": "valid", "count": 3 }, { "name": "not_available", "count": 1 }],
-                                                "letter_countries": [{ "country": "CH", "count": 3 }],
-                                                "letter_regions": [{ "country": "CH", "count": 3 }]
-                                              },
-                                              "links": { "self": "https://api.pingen.com/statistics" }
-                                            }
-                                          }
-                                          """;
-
-    private const string ErrorsJson = """
-                                      {
-                                        "errors": [
-                                          {
-                                            "code": "22",
-                                            "title": "The given data was invalid.",
-                                            "detail": "The name must be at least 5 characters.",
-                                            "source": { "pointer": "/data/attributes/name", "parameter": null }
-                                          }
-                                        ]
-                                      }
-                                      """;
 }
