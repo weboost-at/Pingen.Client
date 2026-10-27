@@ -10,7 +10,7 @@ public class PingenExceptionTests : UnitTestBase
     public void When_the_api_reports_errors_PingenException_carries_them_with_the_status_and_headers()
     {
         // Arrange
-        PingenError[] errors = [new() { Code = Data.Error.Code, Title = Data.Error.Title }];
+        PingenError[] errors = [new() { Code = Data.Error.Code, Title = Data.Error.Title, Detail = Data.Error.Detail }];
 
         // Act
         var exception = new PingenException(
@@ -26,6 +26,18 @@ public class PingenExceptionTests : UnitTestBase
         exception.RetryAfter.Should().Be(Data.Request.RetryAfter);
         exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
         exception.Message.Should().Be($"Pingen request failed with 429 TooManyRequests: {Data.Error.Title}");
+    }
+
+    [Theory]
+    [InlineData("Der Brief ist noch nicht gültig", "1005", "Der Brief ist noch nicht gültig")]
+    [InlineData(null, "1005", "1005")]
+    public void When_the_title_is_null_Message_falls_back_to_detail_or_code(string? detail, string code, string shown)
+    {
+        // Act
+        var exception = new PingenException(HttpStatusCode.UnprocessableEntity, [new() { Code = code, Detail = detail }]);
+
+        // Assert
+        exception.Message.Should().Be($"Pingen request failed with 422 UnprocessableEntity: {shown}");
     }
 
     [Fact]
