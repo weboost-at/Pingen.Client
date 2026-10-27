@@ -5,6 +5,11 @@ namespace Pingen.Client.Tests.Webhooks.Support;
 // Interpolated into webhook documents and payloads, so no value needs JSON escaping
 public class WebhookTestData(TestFaker faker)
 {
+    // Their HMAC-SHA256 ends in 0x00, so a header one byte short decodes into a zero-padded match
+    public const string ZeroEndingKey = "otgc5onkfqcjx16aogc7rero8y0wwkry";
+
+    public const string ZeroEndingPayload = """{"data":{"id":"0a1b2c3d-9999-4000-8000-000000000009","type":"webhook_sent"}}""";
+
     private static readonly string[] Urls =
     [
         "https://acme.example.com/hooks/pingen",
