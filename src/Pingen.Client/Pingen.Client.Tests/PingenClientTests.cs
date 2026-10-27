@@ -10,6 +10,13 @@ public class PingenClientTests : TestBase
 {
     [Theory]
     [InlineData(nameof(PingenClient.Letters))]
+    [InlineData(nameof(PingenClient.Emails))]
+    [InlineData(nameof(PingenClient.Ebills))]
+    [InlineData(nameof(PingenClient.Batches))]
+    [InlineData(nameof(PingenClient.Organisations))]
+    [InlineData(nameof(PingenClient.Users))]
+    [InlineData(nameof(PingenClient.Webhooks))]
+    [InlineData(nameof(PingenClient.Files))]
     public void When_a_hub_property_is_read_twice_it_returns_the_same_service(string service)
     {
         // Arrange
@@ -109,6 +116,8 @@ public class PingenClientTests : TestBase
         var exception = await act.Assert.ThrowsAsync(HttpStatusCode.NoContent);
         exception.Errors.Should().ContainSingle();
         exception.Errors[0].Title.Should().Be("The response carried no payload");
+        exception.Errors[0].Detail.Should().Be(
+            $"POST organisations/{Organisation.Id}/letters answered 204 with an empty body where a resource was expected.");
     }
 
     [Fact]
@@ -153,16 +162,17 @@ public class PingenClientTests : TestBase
         exception.Errors[0].Source!.Pointer.Should().Be(Error.Pointer);
     }
 
-    [Fact]
-    public async Task When_the_error_body_is_not_json_GetAsync_still_throws_with_the_status()
+    [Theory]
+    [InlineData("<html>maintenance</html>", "text/html")]
+    [InlineData("", PingenClient.JsonApiMediaType)]
+    [InlineData("[]", PingenClient.JsonApiMediaType)]
+    [InlineData("{}", PingenClient.JsonApiMediaType)]
+    [InlineData("null", PingenClient.JsonApiMediaType)]
+    [InlineData("""{ "errors": null }""", PingenClient.JsonApiMediaType)]
+    public async Task When_the_error_body_lists_no_errors_GetAsync_throws_with_none(string body, string mediaType)
     {
         // Arrange
-        var response = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
-        {
-            Content = new StringContent("<html>maintenance</html>", Encoding.UTF8, "text/html")
-        };
-
-        Host.Api.Enqueue(response);
+        Host.Api.Enqueue(new(HttpStatusCode.ServiceUnavailable) { Content = new StringContent(body, Encoding.UTF8, mediaType) });
 
         // Act
         var act = () => Host.Client.GetAsync<JsonElement>("organisations", Ct);
@@ -186,6 +196,25 @@ public class PingenClientTests : TestBase
 
         Host.Files.Requests.Should().BeEmpty();
         Host.Api.Requests.Should().ContainSingle();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task When_no_location_is_answered_GetLocationAsync_throws_with_the_answer(HttpStatusCode status)
+    {
+        // Arrange
+        Host.Api.Enqueue(Rejection(status));
+
+        // Act
+        var act = () => Host.Client.GetLocationAsync($"organisations/{Organisation.Id}/letters/{Data.Letter.Id}/file", Ct);
+
+        // Assert
+        var exception = await act.Assert.ThrowsAsync(status);
+        exception.RequestId.Should().Be(Request.Id);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Title.Should().Be(Error.Title);
     }
 
     [Fact]
