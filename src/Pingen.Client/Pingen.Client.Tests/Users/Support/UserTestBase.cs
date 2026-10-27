@@ -42,25 +42,31 @@ public abstract class UserTestBase : TestBase
     protected string AssociationPage(Guid id, int number, int lastPage) =>
         $$"""
           {
-            "data": [
-              {
-                "id": "{{id}}",
-                "type": "associations",
-                "attributes": {
-                  "role": "owner",
-                  "status": "active",
-                  "created_at": "2020-11-19T09:42:48+0100",
-                  "updated_at": "2021-11-19T09:42:48+0100"
-                },
-                "relationships": {
-                  "organisation": { "data": { "id": "{{Organisation.Id}}", "type": "organisations" } },
-                  "user": { "data": { "id": "{{User.Id}}", "type": "users" } }
-                },
-                "links": { "self": "https://api.pingen.com/user/associations/{{id}}" }
-              }
-            ],
+            "data": [ {{AssociationResource(id)}} ],
             "links": { "self": "https://api.pingen.com/user/associations?page[number]={{number}}" },
             "meta": { "current_page": {{number}}, "last_page": {{lastPage}}, "per_page": 1, "from": {{number}}, "to": {{number}}, "total": 2 }
+          }
+          """;
+
+    protected string UnpagedAssociationList() =>
+        $$"""{ "data": [ {{AssociationResource(User.AssociationId)}}, {{AssociationResource(User.OtherAssociationId)}} ] }""";
+
+    private string AssociationResource(Guid id) =>
+        $$"""
+          {
+            "id": "{{id}}",
+            "type": "associations",
+            "attributes": {
+              "role": "owner",
+              "status": "active",
+              "created_at": "2020-11-19T09:42:48+0100",
+              "updated_at": "2021-11-19T09:42:48+0100"
+            },
+            "relationships": {
+              "organisation": { "data": { "id": "{{Organisation.Id}}", "type": "organisations" } },
+              "user": { "data": { "id": "{{User.Id}}", "type": "users" } }
+            },
+            "links": { "self": "https://api.pingen.com/user/associations/{{id}}" }
           }
           """;
 }

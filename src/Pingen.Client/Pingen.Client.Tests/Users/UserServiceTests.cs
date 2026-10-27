@@ -85,7 +85,23 @@ public class UserServiceTests : UserTestBase
         associations.Select(association => association.Id).Should().Equal(User.AssociationId, User.OtherAssociationId);
 
         Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Assert.Query("?page[limit]=1");
         Host.Api.Requests[1].Assert.Query("?page[number]=2&page[limit]=1");
+    }
+
+    [Fact]
+    public async Task When_the_answer_has_no_counters_ListAssociationsAutoPagingAsync_takes_it_as_the_whole_list()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(UnpagedAssociationList());
+
+        // Act
+        var associations = await Users.ListAssociationsAutoPagingAsync(new() { PageLimit = 1 }, Ct).ToListAsync(Ct);
+
+        // Assert
+        associations.Select(association => association.Id).Should().Equal(User.AssociationId, User.OtherAssociationId);
+
+        Host.Api.Requests.Should().ContainSingle();
     }
 
     [Fact]
