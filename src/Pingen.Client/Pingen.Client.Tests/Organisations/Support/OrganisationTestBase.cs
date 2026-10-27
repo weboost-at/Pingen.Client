@@ -20,6 +20,15 @@ public abstract class OrganisationTestBase : TestBase
           }
           """;
 
+    protected string EmptyOrganisationPage() =>
+        """
+        {
+          "data": [],
+          "links": { "self": "https://api.pingen.com/organisations?page[number]=1" },
+          "meta": { "current_page": 1, "last_page": 2, "per_page": 1, "from": null, "to": null, "total": 2 }
+        }
+        """;
+
     private string OrganisationResource(Guid id, string limits, bool abilities) =>
         $$"""
           {

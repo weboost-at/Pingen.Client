@@ -53,15 +53,56 @@ public class OrganisationServiceTests : OrganisationTestBase
             .EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 2))
             .EnqueueOk(OrganisationPage(Organisation.OtherId, number: 2, lastPage: 2));
 
+        var options = new PingenListOptions
+        {
+            PageLimit = 1,
+            Sort = "-created_at",
+            Search = Organisation.Name
+        };
+
         // Act
-        var organisations = await Organisations.ListAutoPagingAsync(new() { PageLimit = 1 }, Ct).ToListAsync(Ct);
+        var organisations = await Organisations.ListAutoPagingAsync(options, Ct).ToListAsync(Ct);
 
         // Assert
         organisations.Select(organisation => organisation.Id).Should().Equal(Organisation.Id, Organisation.OtherId);
 
         Host.Api.Requests.Should().HaveCount(2);
-        Host.Api.Requests[0].Assert.Query("?page[limit]=1");
-        Host.Api.Requests[1].Assert.Query("?page[number]=2&page[limit]=1");
+        Host.Api.Requests[0].Assert.Query($"?page[limit]=1&sort=-created_at&q={Organisation.Name}");
+        Host.Api.Requests[1].Assert.Query($"?page[number]=2&page[limit]=1&sort=-created_at&q={Organisation.Name}");
+    }
+
+    [Fact]
+    public async Task When_no_options_are_given_ListAutoPagingAsync_starts_bare_and_asks_for_page_two()
+    {
+        // Arrange
+        Host.Api
+            .EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 2))
+            .EnqueueOk(OrganisationPage(Organisation.OtherId, number: 2, lastPage: 2));
+
+        // Act
+        var organisations = await Organisations.ListAutoPagingAsync(cancellationToken: Ct).ToListAsync(Ct);
+
+        // Assert
+        organisations.Should().HaveCount(2);
+
+        Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Query.Should().BeEmpty();
+        Host.Api.Requests[1].Assert.Query("?page[number]=2");
+    }
+
+    [Fact]
+    public async Task When_a_page_comes_back_empty_ListAutoPagingAsync_stops_although_more_are_announced()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(EmptyOrganisationPage());
+
+        // Act
+        var organisations = await Organisations.ListAutoPagingAsync(new() { PageLimit = 1 }, Ct).ToListAsync(Ct);
+
+        // Assert
+        organisations.Should().BeEmpty();
+
+        Host.Api.Requests.Should().ContainSingle();
     }
 
     [Fact]
