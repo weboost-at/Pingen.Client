@@ -5,29 +5,38 @@ using Pingen.Client.Common.Json;
 
 namespace Pingen.Client.Tests.Common;
 
-public class PingenErrorTests
+public class PingenErrorTests : UnitTestBase
 {
     [Fact]
     public void When_the_api_rejects_a_request_Deserialize_maps_every_error_member()
     {
-        // Arrange
-        var json = """
-                   {"errors":[
-                     {"code":"1005","title":"The given data was invalid.","detail":"The file url signature is invalid.","source":{"pointer":"/data/attributes/file_url_signature"}},
-                     {"title":"Unprocessable Entity","source":{"parameter":"page[limit]"}}
-                   ]}
-                   """;
-
         // Act
-        var document = JsonSerializer.Deserialize<PingenErrorDocument>(json, PingenJson.Options)!;
+        var document = JsonSerializer.Deserialize<PingenErrorDocument>(
+            $$"""
+              {
+                "errors": [
+                  {
+                    "code": "{{Data.Error.Code}}",
+                    "title": "{{Data.Error.Title}}",
+                    "detail": "{{Data.Error.Detail}}",
+                    "source": { "pointer": "{{Data.Error.Pointer}}" }
+                  },
+                  { "title": "Unprocessable Entity", "source": { "parameter": "page[limit]" } }
+                ]
+              }
+              """,
+            PingenJson.Options
+        )!;
 
         // Assert
         document.Errors.Should().HaveCount(2);
-        document.Errors[0].Code.Should().Be("1005");
-        document.Errors[0].Title.Should().Be("The given data was invalid.");
-        document.Errors[0].Detail.Should().Be("The file url signature is invalid.");
-        document.Errors[0].Source!.Pointer.Should().Be("/data/attributes/file_url_signature");
+
+        document.Errors[0].Code.Should().Be(Data.Error.Code);
+        document.Errors[0].Title.Should().Be(Data.Error.Title);
+        document.Errors[0].Detail.Should().Be(Data.Error.Detail);
+        document.Errors[0].Source!.Pointer.Should().Be(Data.Error.Pointer);
         document.Errors[0].Source!.Parameter.Should().BeNull();
+
         document.Errors[1].Code.Should().BeNull();
         document.Errors[1].Source!.Parameter.Should().Be("page[limit]");
     }
