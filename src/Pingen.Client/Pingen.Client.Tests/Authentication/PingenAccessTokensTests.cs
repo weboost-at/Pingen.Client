@@ -1,147 +1,156 @@
 using System.Net;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Pingen.Client.Authentication;
-using Pingen.Client.Common;
 using Pingen.Client.Options;
-using Pingen.Client.Tests.Tests;
+using Pingen.Client.Tests.Authentication.Support;
 
 namespace Pingen.Client.Tests.Authentication;
 
-public class PingenAccessTokensTests
+public class PingenAccessTokensTests : AuthenticationTestBase
 {
-    [Fact]
-    public async Task When_a_token_is_requested_GetAsync_posts_the_client_credentials_form_to_the_identity_host()
+    [Theory]
+    [InlineData("letter", "letter")]
+    [InlineData("letter webhook user", "letter+webhook+user")]
+    [InlineData("batch organisation_read", "batch+organisation_read")]
+    public async Task When_a_token_is_requested_GetAsync_posts_the_client_credentials_form(string scopes, string wire)
     {
         // Arrange
-        using var host = new PingenTestHost(options => options.Scopes = "letter webhook user");
+        HostWith(options => options.Scopes = scopes);
 
         // Act
-        var token = await Tokens(host).GetAsync(TestContext.Current.CancellationToken);
+        var token = await Tokens.GetAsync(Ct);
 
         // Assert
         token.Should().Be(PingenTestHost.AccessToken);
-        host.Identity.Request.Method.Should().Be(HttpMethod.Post);
-        host.Identity.Request.Url.Should().Be(new Uri("https://identity.pingen.com/auth/access-tokens"));
-        host.Identity.Request.Header("Content-Type").Should().Be("application/x-www-form-urlencoded");
-        host.Identity.Request.Text.Should().Be("grant_type=client_credentials&client_id=test-client-id&client_secret=test-client-secret&scope=letter+webhook+user");
+
+        Host.Identity.Request.Method.Should().Be(HttpMethod.Post);
+        Host.Identity.Request.Header("Accept").Should().Be("application/json");
+        Host.Identity.Request.Url.Should().Be(new Uri("https://identity.pingen.com/auth/access-tokens"));
+        Host.Identity.Request.Header("Content-Type").Should().Be("application/x-www-form-urlencoded");
+        Host.Identity.Request.Text.Should().Be(
+            $"grant_type=client_credentials&client_id={PingenTestHost.ClientId}&client_secret={PingenTestHost.ClientSecret}&scope={wire}");
     }
 
-    [Fact]
-    public async Task When_no_scopes_are_configured_GetAsync_omits_the_scope_field()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task When_no_scopes_are_configured_GetAsync_omits_the_scope_field(string? scopes)
     {
         // Arrange
-        using var host = new PingenTestHost();
+        HostWith(options => options.Scopes = scopes);
 
         // Act
-        await Tokens(host).GetAsync(TestContext.Current.CancellationToken);
+        await Tokens.GetAsync(Ct);
 
         // Assert
-        host.Identity.Request.Text.Should().NotContain("scope");
+        Host.Identity.Request.Text.Should().NotContain("scope");
     }
 
     [Fact]
     public async Task When_the_staging_environment_is_configured_GetAsync_talks_to_the_staging_identity_host()
     {
         // Arrange
-        using var host = new PingenTestHost(options => options.Environment = PingenEnvironment.Staging);
+        HostWith(options => options.Environment = PingenEnvironment.Staging);
 
         // Act
-        await Tokens(host).GetAsync(TestContext.Current.CancellationToken);
+        await Tokens.GetAsync(Ct);
 
         // Assert
-        host.Identity.Request.Url.Host.Should().Be("identity-staging.pingen.com");
+        Host.Identity.Request.Url.Host.Should().Be("identity-staging.pingen.com");
+    }
+
+    [Fact]
+    public async Task When_an_identity_address_is_configured_GetAsync_posts_to_it_instead()
+    {
+        // Arrange
+        HostWith(options => options.IdentityAddress = Data.Options.IdentityAddress);
+
+        // Act
+        await Tokens.GetAsync(Ct);
+
+        // Assert
+        Host.Identity.Request.Url.Should().Be(new Uri(Data.Options.IdentityAddress, "auth/access-tokens"));
     }
 
     [Fact]
     public async Task When_a_cached_token_is_still_valid_GetAsync_does_not_request_a_second_one()
     {
-        // Arrange
-        using var host = new PingenTestHost();
-        var tokens = Tokens(host);
-
         // Act
-        var first = await tokens.GetAsync(TestContext.Current.CancellationToken);
-        var second = await tokens.GetAsync(TestContext.Current.CancellationToken);
+        var first = await Tokens.GetAsync(Ct);
+        var second = await Tokens.GetAsync(Ct);
 
         // Assert
         second.Should().Be(first);
-        host.Identity.Requests.Should().ContainSingle();
+        Host.Identity.Requests.Should().ContainSingle();
     }
 
     [Theory]
+    [InlineData(-1)]
     [InlineData(0)]
+    [InlineData(1)]
     [InlineData(59)]
+    [InlineData(60)]
     public async Task When_the_cached_token_expires_within_the_refresh_window_GetAsync_requests_a_new_one(int expiresIn)
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Identity.Clear();
-        host.EnqueueToken("expiring", expiresIn);
-        host.EnqueueToken("fresh");
-        var tokens = Tokens(host);
+        Host.Identity.Clear();
+        Host.EnqueueToken(Authentication.ExpiringToken, expiresIn).EnqueueToken(Authentication.FreshToken);
 
         // Act
-        var first = await tokens.GetAsync(TestContext.Current.CancellationToken);
-        var second = await tokens.GetAsync(TestContext.Current.CancellationToken);
+        var first = await Tokens.GetAsync(Ct);
+        var second = await Tokens.GetAsync(Ct);
 
         // Assert
-        first.Should().Be("expiring");
-        second.Should().Be("fresh");
-        host.Identity.Requests.Should().HaveCount(2);
+        first.Should().Be(Authentication.ExpiringToken);
+        second.Should().Be(Authentication.FreshToken);
+        Host.Identity.Requests.Should().HaveCount(2);
     }
 
     [Fact]
-    public async Task When_Invalidate_runs_while_a_refresh_is_in_flight_GetAsync_does_not_cache_the_token_it_was_waiting_for()
+    public async Task When_Invalidate_runs_during_a_refresh_GetAsync_does_not_cache_the_token_it_was_waiting_for()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Identity.Clear();
-        host.EnqueueToken("rejected").EnqueueToken("fresh");
-        var tokens = Tokens(host);
+        Host.EnqueueToken(Authentication.FreshToken);
+
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        host.Identity.OnRequest = async _ =>
+
+        Host.Identity.OnRequest = async _ =>
         {
-            if (host.Identity.Requests.Count is not 1) return;
+            if (Host.Identity.Requests.Count is not 1) return;
 
             started.SetResult();
             await release.Task;
         };
 
         // Act
-        var inflight = tokens.GetAsync(TestContext.Current.CancellationToken);
+        var inflight = Tokens.GetAsync(Ct);
         await started.Task;
-        tokens.Invalidate();
+
+        Tokens.Invalidate();
         release.SetResult();
+
         var stale = await inflight;
-        var refreshed = await tokens.GetAsync(TestContext.Current.CancellationToken);
+        var refreshed = await Tokens.GetAsync(Ct);
 
         // Assert
-        stale.Should().Be("rejected");
-        refreshed.Should().Be("fresh");
-        host.Identity.Requests.Should().HaveCount(2);
+        stale.Should().Be(PingenTestHost.AccessToken);
+        refreshed.Should().Be(Authentication.FreshToken);
+        Host.Identity.Requests.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task When_the_identity_host_rejects_the_credentials_GetAsync_throws_a_PingenException()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Identity.Clear().EnqueueJson(
-            HttpStatusCode.Unauthorized,
-            """{"errors":[{"code":"1002","title":"Unauthorized"}]}""",
-            "application/json"
-        );
+        Host.Identity.Clear().Enqueue(Rejection(HttpStatusCode.Unauthorized));
 
         // Act
-        var act = () => Tokens(host).GetAsync(TestContext.Current.CancellationToken);
+        var act = () => Tokens.GetAsync(Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        exception.Errors.Should().ContainSingle().Which.Title.Should().Be("Unauthorized");
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.Unauthorized);
+        exception.RequestId.Should().Be(Request.Id);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Title.Should().Be(Error.Title);
     }
-
-    private static PingenAccessTokens Tokens(PingenTestHost host) => host.Provider.GetRequiredService<PingenAccessTokens>();
 }

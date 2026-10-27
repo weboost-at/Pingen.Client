@@ -11,46 +11,53 @@ using Pingen.Client.Deliveries.Letters;
 using Pingen.Client.Files;
 using Pingen.Client.Options;
 using Pingen.Client.Organisations;
-using Pingen.Client.Tests.Tests;
 using Pingen.Client.Users;
 using Pingen.Client.Webhooks;
 
 namespace Pingen.Client.Tests;
 
-public class PingenConfigurationTests
+public class PingenConfigurationTests : TestBase
 {
     [Fact]
     public void When_a_Pingen_section_is_present_AddPingen_binds_every_option_from_it()
     {
         // Arrange
-        var services = Configured(new()
-        {
-            ["Pingen:ClientId"] = "bound-id",
-            ["Pingen:ClientSecret"] = "bound-secret",
-            ["Pingen:Environment"] = "Staging",
-            ["Pingen:Scopes"] = "letter user",
-            ["Pingen:BaseAddress"] = "https://api.example.com/",
-            ["Pingen:IdentityAddress"] = "https://identity.example.com/",
-        });
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Pingen:ClientId"] = Data.Options.ClientId,
+                ["Pingen:ClientSecret"] = Data.Options.ClientSecret,
+                ["Pingen:Environment"] = "Staging",
+                ["Pingen:Scopes"] = Data.Options.Scopes,
+                ["Pingen:BaseAddress"] = Data.Options.BaseAddress.ToString(),
+                ["Pingen:IdentityAddress"] = Data.Options.IdentityAddress.ToString()
+            })
+            .Build();
+
+        var services = new ServiceCollection().AddSingleton<IConfiguration>(configuration).AddPingen();
 
         // Act
         using var provider = services.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<PingenOptions>>().Value;
 
         // Assert
-        options.ClientId.Should().Be("bound-id");
-        options.ClientSecret.Should().Be("bound-secret");
+        options.Scopes.Should().Be(Data.Options.Scopes);
+        options.ClientId.Should().Be(Data.Options.ClientId);
+        options.BaseAddress.Should().Be(Data.Options.BaseAddress);
         options.Environment.Should().Be(PingenEnvironment.Staging);
-        options.Scopes.Should().Be("letter user");
-        options.BaseAddress.Should().Be(new Uri("https://api.example.com/"));
-        options.IdentityAddress.Should().Be(new Uri("https://identity.example.com/"));
+        options.ClientSecret.Should().Be(Data.Options.ClientSecret);
+        options.IdentityAddress.Should().Be(Data.Options.IdentityAddress);
     }
 
     [Fact]
-    public void When_the_section_omits_the_client_id_the_startup_validation_fails()
+    public void When_the_section_omits_the_client_id_AddPingen_fails_the_startup_validation()
     {
         // Arrange
-        var services = Configured(new() { ["Pingen:ClientSecret"] = "bound-secret" });
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Pingen:ClientSecret"] = Data.Options.ClientSecret })
+            .Build();
+
+        var services = new ServiceCollection().AddSingleton<IConfiguration>(configuration).AddPingen();
 
         // Act
         using var provider = services.BuildServiceProvider();
@@ -60,80 +67,69 @@ public class PingenConfigurationTests
         act.Should().Throw<OptionsValidationException>().WithMessage("*ClientId is required.*");
     }
 
+    [Theory]
+    [InlineData(typeof(PingenClient))]
+    [InlineData(typeof(PingenAccessTokens))]
+    [InlineData(typeof(PingenAuthenticationHandler))]
+    [InlineData(typeof(LetterService))]
+    [InlineData(typeof(EmailService))]
+    [InlineData(typeof(EbillService))]
+    [InlineData(typeof(BatchService))]
+    [InlineData(typeof(OrganisationService))]
+    [InlineData(typeof(UserService))]
+    [InlineData(typeof(WebhookService))]
+    [InlineData(typeof(FileService))]
+    public void When_the_container_is_built_AddPingen_has_registered_the_service(Type service) =>
+        Host.Provider.GetRequiredService(service).Should().BeOfType(service);
+
     [Fact]
-    public void When_the_container_is_built_AddPingen_registers_the_client_and_its_authentication_parts()
+    public void When_the_client_is_registered_AddPingen_authenticates_it_and_leaves_redirects_unfollowed()
     {
         // Arrange
-        using var host = new PingenTestHost();
+        using var provider = new ServiceCollection().AddPingen(_ => { }).BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpMessageHandlerFactory>();
 
         // Act
-        var client = host.Client;
+        List<HttpMessageHandler> chain = [factory.CreateHandler(nameof(PingenClient))];
+        while (chain[^1] is DelegatingHandler { InnerHandler: { } inner }) chain.Add(inner);
 
         // Assert
-        client.Should().NotBeNull();
-        host.Provider.GetRequiredService<PingenAccessTokens>().Should().BeSameAs(host.Provider.GetRequiredService<PingenAccessTokens>());
-        host.Provider.GetRequiredService<PingenAuthenticationHandler>().Should().NotBeNull();
-        host.Provider.GetServices<IValidateOptions<PingenOptions>>().Should().ContainItemsAssignableTo<PingenOptionsValidator>();
+        chain.OfType<PingenAuthenticationHandler>().Should().ContainSingle();
+        chain.OfType<HttpClientHandler>().Select(handler => handler.AllowAutoRedirect).Should().Equal(false);
     }
 
     [Fact]
-    public void When_the_container_is_built_every_service_resolves_from_it()
-    {
-        // Arrange
-        using var host = new PingenTestHost();
-
-        // Act
-        var client = host.Provider.GetRequiredService<PingenClient>();
-
-        // Assert
-        host.Provider.GetRequiredService<LetterService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<EmailService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<EbillService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<BatchService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<OrganisationService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<UserService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<WebhookService>().Should().NotBeNull();
-        host.Provider.GetRequiredService<FileService>().Should().NotBeNull();
-        client.Letters.Should().BeSameAs(client.Letters);
-    }
+    public void When_the_token_cache_is_resolved_twice_AddPingen_hands_out_the_same_one() =>
+        Resolve<PingenAccessTokens>().Should().BeSameAs(Resolve<PingenAccessTokens>());
 
     [Theory]
     [InlineData(PingenEnvironment.Production, "https://api.pingen.com/organisations")]
     [InlineData(PingenEnvironment.Staging, "https://api-staging.pingen.com/organisations")]
-    public async Task When_no_base_address_is_configured_the_client_talks_to_the_environment_default(PingenEnvironment environment, string expected)
+    public async Task When_an_environment_is_set_AddPingen_targets_its_api(PingenEnvironment environment, string url)
     {
         // Arrange
-        using var host = new PingenTestHost(options => options.Environment = environment);
-        host.Api.EnqueueOk("""{"data":[]}""");
+        HostWith(options => options.Environment = environment);
+        Host.Api.EnqueueOk("""{ "data": [] }""");
 
         // Act
-        await host.Client.GetAsync<JsonElement>("organisations", TestContext.Current.CancellationToken);
+        await Host.Client.GetAsync<JsonElement>("organisations", Ct);
 
         // Assert
-        host.Api.Request.Url.Should().Be(new Uri(expected));
-        host.Api.Request.Header("Accept").Should().Be(PingenClient.JsonApiMediaType);
+        Host.Api.Request.Url.Should().Be(new Uri(url));
+        Host.Api.Request.Header("Accept").Should().Be(PingenClient.JsonApiMediaType);
     }
 
     [Fact]
-    public async Task When_a_base_address_is_configured_it_overrides_the_environment_default()
+    public async Task When_a_base_address_is_set_AddPingen_targets_it_instead_of_the_environment()
     {
         // Arrange
-        using var host = new PingenTestHost(options => options.BaseAddress = new("https://api.example.com/"));
-        host.Api.EnqueueOk("""{"data":[]}""");
+        HostWith(options => options.BaseAddress = Data.Options.BaseAddress);
+        Host.Api.EnqueueOk("""{ "data": [] }""");
 
         // Act
-        await host.Client.GetAsync<JsonElement>("organisations", TestContext.Current.CancellationToken);
+        await Host.Client.GetAsync<JsonElement>("organisations", Ct);
 
         // Assert
-        host.Api.Request.Url.Should().Be(new Uri("https://api.example.com/organisations"));
-    }
-
-    private static IServiceCollection Configured(Dictionary<string, string?> values)
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(new ConfigurationBuilder().AddInMemoryCollection(values).Build());
-        services.AddPingen();
-
-        return services;
+        Host.Api.Request.Url.Should().Be(new Uri(Data.Options.BaseAddress, "organisations"));
     }
 }

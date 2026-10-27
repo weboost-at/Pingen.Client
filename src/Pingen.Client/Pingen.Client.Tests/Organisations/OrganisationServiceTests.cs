@@ -1,134 +1,123 @@
 using System.Net;
-using System.Net.Http.Headers;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Organisations;
-using Pingen.Client.Tests.Tests;
+using Pingen.Client.Tests.Organisations.Support;
 
 namespace Pingen.Client.Tests.Organisations;
 
-public class OrganisationServiceTests
+public class OrganisationServiceTests : OrganisationTestBase
 {
-    private static readonly Guid OrganisationId = Guid.Parse("6c3d1f0a-1111-4000-8000-000000000001");
-    private const string OrganisationPath = "/organisations/6c3d1f0a-1111-4000-8000-000000000001";
-
-    private const string Abilities = """
-                                     "meta": { "abilities": { "self": { "manage": "ok" } } },
-                                     """;
-
-    private static string OrganisationJson(string id = "6c3d1f0a-1111-4000-8000-000000000001", string meta = "", string limit = "5000") =>
-        $$"""
-          {
-            {{meta}}
-            "id": "{{id}}",
-            "type": "organisations",
-            "attributes": {
-              "name": "ACME GmbH Zürich",
-              "status": "active",
-              "plan": "free",
-              "billing_mode": "prepaid",
-              "billing_currency": "CHF",
-              "billing_balance": 11.23,
-              "missing_credits": 0,
-              "edition": "pingen",
-              "default_country": "CH",
-              "default_address_position": "left",
-              "data_retention_addresses": 18,
-              "data_retention_pdf": 12,
-              "limits_monthly_letters_count": {{limit}},
-              "limits_monthly_ebills_count": {{limit}},
-              "limits_monthly_emails_count": {{limit}},
-              "color": "#0758FF",
-              "flags": ["batch", "ebill"],
-              "created_at": "2020-11-19T09:42:48+0100",
-              "updated_at": "2021-11-19T09:42:48+0100"
-            },
-            "relationships": {
-              "associations": {
-                "links": { "related": { "href": "https://api.pingen.com/organisations/6c3d1f0a/associations", "meta": { "count": 3 } } }
-              }
-            },
-            "links": { "self": "https://api.pingen.com/organisations/6c3d1f0a" }
-          }
-          """;
-
-    private static string ListJson(int currentPage, int lastPage, string id) =>
-        $$"""
-          {
-            "data": [ {{OrganisationJson(id)}} ],
-            "links": { "self": "https://api.pingen.com/organisations" },
-            "meta": { "current_page": {{currentPage}}, "last_page": {{lastPage}}, "per_page": 1, "from": 1, "to": 1, "total": 2 }
-          }
-          """;
-
     [Fact]
     public async Task When_the_organisations_of_the_user_are_listed_ListAsync_gets_them_and_maps_the_attributes()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(ListJson(currentPage: 1, lastPage: 1, id: "6c3d1f0a-1111-4000-8000-000000000001"));
+        Host.Api.EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 1));
+
+        var options = new PingenListOptions
+        {
+            PageLimit = 50,
+            Sort = "-created_at",
+            Search = Organisation.Name
+        };
 
         // Act
-        var organisations = await new OrganisationService(host.Client).ListAsync(
-            new() { PageLimit = 50, Sort = "-created_at", Search = "ACME" },
-            TestContext.Current.CancellationToken
-        );
+        var organisations = await Organisations.ListAsync(options, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be("/organisations");
-        host.Api.Request.Query.Should().Be("?page[limit]=50&sort=-created_at&q=ACME");
-        var organisation = organisations.Should().ContainSingle().Which;
-        organisation.Id.Should().Be(OrganisationId);
-        organisation.Type.Should().Be("organisations");
-        organisation.Attributes.Name.Should().Be("ACME GmbH Zürich");
-        organisation.Attributes.Status.Should().Be("active");
-        organisation.Attributes.BillingMode.Should().Be("prepaid");
-        organisation.Attributes.BillingBalance.Should().Be(11.23m);
-        organisation.Attributes.DataRetentionPdf.Should().Be(12);
-        organisation.Attributes.LimitsMonthlyEmailsCount.Should().Be(5000);
-        organisation.Attributes.Flags.Should().Equal("batch", "ebill");
-        organisation.Attributes.CreatedAt.Should().Be(new(2020, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
-        organisation.Relationships!.Associations!.Count.Should().Be(3);
-        organisation.Meta.Should().BeNull();
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, "/organisations");
+        Host.Api.Request.Assert.Query($"?page[limit]=50&sort=-created_at&q={Organisation.Name}");
+
+        organisations.Should().ContainSingle();
+        organisations[0].Meta.Should().BeNull();
+        organisations[0].Id.Should().Be(Organisation.Id);
+        organisations[0].Type.Should().Be("organisations");
         organisations.Meta!.Total.Should().Be(2);
+
+        organisations[0].Attributes.Status.Should().Be("active");
+        organisations[0].Attributes.DataRetentionPdf.Should().Be(12);
+        organisations[0].Attributes.BillingMode.Should().Be("prepaid");
+        organisations[0].Attributes.BillingBalance.Should().Be(11.23m);
+        organisations[0].Attributes.Name.Should().Be(Organisation.Name);
+        organisations[0].Attributes.Flags.Should().Equal("batch", "ebill");
+        organisations[0].Attributes.LimitsMonthlyEmailsCount.Should().Be(5000);
+        organisations[0].Attributes.CreatedAt.Should().Be(new(2020, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
+
+        organisations[0].Relationships!.Associations!.Count.Should().Be(3);
     }
 
     [Fact]
-    public async Task When_the_list_spans_two_pages_ListAutoPagingAsync_yields_every_organisation_and_asks_for_the_next_page_only()
+    public async Task When_the_list_spans_two_pages_ListAutoPagingAsync_yields_both_and_asks_for_page_two_only()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api
-            .EnqueueOk(ListJson(currentPage: 1, lastPage: 2, id: "6c3d1f0a-1111-4000-8000-000000000001"))
-            .EnqueueOk(ListJson(currentPage: 2, lastPage: 2, id: "9e8d7c6b-8888-4000-8000-000000000008"));
+        Host.Api
+            .EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 2))
+            .EnqueueOk(OrganisationPage(Organisation.OtherId, number: 2, lastPage: 2));
+
+        var options = new PingenListOptions
+        {
+            PageLimit = 1,
+            Sort = "-created_at",
+            Search = Organisation.Name
+        };
 
         // Act
-        var organisations = await new OrganisationService(host.Client)
-            .ListAutoPagingAsync(new() { PageLimit = 1 }, TestContext.Current.CancellationToken)
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var organisations = await Organisations.ListAutoPagingAsync(options, Ct).ToListAsync(Ct);
 
         // Assert
-        organisations.Select(organisation => organisation.Id).Should().Equal(OrganisationId, Guid.Parse("9e8d7c6b-8888-4000-8000-000000000008"));
-        host.Api.Requests.Should().HaveCount(2);
-        host.Api.Requests[0].Query.Should().Be("?page[limit]=1");
-        host.Api.Requests[1].Query.Should().Be("?page[number]=2&page[limit]=1");
+        organisations.Select(organisation => organisation.Id).Should().Equal(Organisation.Id, Organisation.OtherId);
+
+        Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Assert.Query($"?page[limit]=1&sort=-created_at&q={Organisation.Name}");
+        Host.Api.Requests[1].Assert.Query($"?page[number]=2&page[limit]=1&sort=-created_at&q={Organisation.Name}");
+    }
+
+    [Fact]
+    public async Task When_no_options_are_given_ListAutoPagingAsync_starts_bare_and_asks_for_page_two()
+    {
+        // Arrange
+        Host.Api
+            .EnqueueOk(OrganisationPage(Organisation.Id, number: 1, lastPage: 2))
+            .EnqueueOk(OrganisationPage(Organisation.OtherId, number: 2, lastPage: 2));
+
+        // Act
+        var organisations = await Organisations.ListAutoPagingAsync(cancellationToken: Ct).ToListAsync(Ct);
+
+        // Assert
+        organisations.Should().HaveCount(2);
+
+        Host.Api.Requests.Should().HaveCount(2);
+        Host.Api.Requests[0].Query.Should().BeEmpty();
+        Host.Api.Requests[1].Assert.Query("?page[number]=2");
+    }
+
+    [Fact]
+    public async Task When_a_page_comes_back_empty_ListAutoPagingAsync_stops_although_more_are_announced()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(EmptyOrganisationPage());
+
+        // Act
+        var organisations = await Organisations.ListAutoPagingAsync(new() { PageLimit = 1 }, Ct).ToListAsync(Ct);
+
+        // Assert
+        organisations.Should().BeEmpty();
+
+        Host.Api.Requests.Should().ContainSingle();
     }
 
     [Fact]
     public async Task When_one_organisation_is_addressed_GetAsync_gets_it_and_maps_the_abilities()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk($$"""{ "data": {{OrganisationJson(meta: Abilities)}} }""");
+        Host.Api.EnqueueOk(OrganisationDocument());
 
         // Act
-        var organisation = await new OrganisationService(host.Client).GetAsync(OrganisationId, TestContext.Current.CancellationToken);
+        var organisation = await Organisations.GetAsync(Organisation.Id, Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be(OrganisationPath);
-        host.Api.Request.Query.Should().BeEmpty();
+        Host.Api.Request.Query.Should().BeEmpty();
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, OrganisationPath);
+
         organisation.Attributes.DefaultAddressPosition.Should().Be("left");
         organisation.Meta!.Abilities.Should().Contain(new KeyValuePair<string, string>("manage", "ok"));
     }
@@ -137,36 +126,36 @@ public class OrganisationServiceTests
     public async Task When_pingen_reports_no_monthly_limits_GetAsync_maps_them_to_null()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk($$"""{ "data": {{OrganisationJson(limit: "null")}} }""");
+        Host.Api.EnqueueOk(OrganisationDocument(limits: "null"));
 
         // Act
-        var organisation = await new OrganisationService(host.Client).GetAsync(OrganisationId, TestContext.Current.CancellationToken);
+        var organisation = await Organisations.GetAsync(Organisation.Id, Ct);
 
         // Assert
-        organisation.Attributes.LimitsMonthlyLettersCount.Should().BeNull();
         organisation.Attributes.LimitsMonthlyEbillsCount.Should().BeNull();
         organisation.Attributes.LimitsMonthlyEmailsCount.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyLettersCount.Should().BeNull();
     }
 
     [Fact]
-    public async Task When_the_organisation_list_is_rate_limited_ListAsync_throws_with_the_retry_delay_and_the_request_id()
+    public async Task When_the_list_is_rate_limited_ListAsync_throws_with_the_retry_delay_and_the_request_id()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
-        response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
-        response.Headers.Add("X-Request-Id", "01HQ8Z9WQ4");
-        host.Api.Enqueue(response);
+        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests)
+        {
+            Headers = { RetryAfter = new(Request.RetryAfter) }
+        };
+
+        response.Headers.Add("X-Request-Id", Request.Id);
+        Host.Api.Enqueue(response);
 
         // Act
-        var act = () => new OrganisationService(host.Client).ListAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var act = () => Organisations.ListAsync(cancellationToken: Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
-        exception.RetryAfter.Should().Be(TimeSpan.FromSeconds(30));
-        exception.RequestId.Should().Be("01HQ8Z9WQ4");
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.TooManyRequests);
         exception.Errors.Should().BeEmpty();
+        exception.RequestId.Should().Be(Request.Id);
+        exception.RetryAfter.Should().Be(Request.RetryAfter);
     }
 }

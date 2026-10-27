@@ -3,34 +3,20 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 
-namespace Pingen.Client.Tests.Tests;
+namespace Pingen.Client.Tests.Testing.Hosting;
 
-/// <summary>
-/// An HTTP handler that records every request it receives and answers with the responses queued on it.
-/// </summary>
+// Records every request it receives and answers with the responses queued on it, in order
 public class RecordingHandler : HttpMessageHandler
 {
     private readonly Queue<HttpResponseMessage> _responses = new();
 
-    /// <summary>
-    /// The requests that reached this handler, in the order they were sent.
-    /// </summary>
     public List<RecordedRequest> Requests { get; } = [];
 
-    /// <summary>
-    /// The only request that reached this handler.
-    /// </summary>
     public RecordedRequest Request => Requests.Single();
 
-    /// <summary>
-    /// A hook awaited after a request is recorded and before it is answered, for tests that act while a call is in
-    /// flight.
-    /// </summary>
+    // Awaited after a request is recorded and before it is answered, for tests that act while a call is in flight
     public Func<RecordedRequest, Task>? OnRequest { get; set; }
 
-    /// <summary>
-    /// Queues <paramref name="response"/> as the answer to the next request.
-    /// </summary>
     public RecordingHandler Enqueue(HttpResponseMessage response)
     {
         _responses.Enqueue(response);
@@ -38,9 +24,7 @@ public class RecordingHandler : HttpMessageHandler
         return this;
     }
 
-    /// <summary>
-    /// Drops every queued response and recorded request, for tests that need to answer the first request themselves.
-    /// </summary>
+    // Drops what is queued and recorded, for tests that answer the first request themselves
     public RecordingHandler Clear()
     {
         _responses.Clear();
@@ -49,25 +33,17 @@ public class RecordingHandler : HttpMessageHandler
         return this;
     }
 
-    /// <summary>
-    /// Queues a JSON:API answer with the given status and body.
-    /// </summary>
     public RecordingHandler EnqueueJson(HttpStatusCode status, string json, string mediaType = PingenClient.JsonApiMediaType) =>
         Enqueue(new(status) { Content = new StringContent(json, Encoding.UTF8, mediaType) });
 
-    /// <summary>
-    /// Queues a <c>200 OK</c> JSON:API answer.
-    /// </summary>
     public RecordingHandler EnqueueOk(string json) => EnqueueJson(HttpStatusCode.OK, json);
 
-    /// <summary>
-    /// Queues an answer without a body, for the 202 and 204 endpoints.
-    /// </summary>
     public RecordingHandler EnqueueEmpty(HttpStatusCode status = HttpStatusCode.NoContent) => Enqueue(new(status));
 
-    /// <summary>
-    /// Records the request and answers it with the response queued first.
-    /// </summary>
+    public RecordingHandler EnqueueRedirect(Uri location) => Enqueue(new(HttpStatusCode.Found) { Headers = { Location = location } });
+
+    public RecordingHandler EnqueueBytes(byte[] content) => Enqueue(new(HttpStatusCode.OK) { Content = new ByteArrayContent(content) });
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
@@ -84,6 +60,7 @@ public class RecordingHandler : HttpMessageHandler
         var recorded = new RecordedRequest(
             Method: request.Method,
             Url: request.RequestUri!,
+            Version: request.Version,
             Headers: headers,
             Body: body
         );
@@ -97,33 +74,26 @@ public class RecordingHandler : HttpMessageHandler
     }
 }
 
-/// <summary>
-/// One request a <see cref="RecordingHandler"/> captured.
-/// </summary>
-public record RecordedRequest(HttpMethod Method, Uri Url, IReadOnlyDictionary<string, string> Headers, byte[] Body)
+public record RecordedRequest(
+    HttpMethod Method,
+    Uri Url,
+    Version Version,
+    IReadOnlyDictionary<string, string> Headers,
+    byte[] Body
+)
 {
-    /// <summary>
-    /// The path of the request without the query string.
-    /// </summary>
     public string Path => Url.AbsolutePath;
 
-    /// <summary>
-    /// The query string of the request as it went on the wire, including the leading <c>?</c>.
-    /// </summary>
+    // Still escaped, and with its leading ?
     public string Query => Url.Query;
 
-    /// <summary>
-    /// The body of the request decoded as UTF-8 text.
-    /// </summary>
     public string Text => Encoding.UTF8.GetString(Body);
 
-    /// <summary>
-    /// The body of the request parsed as JSON.
-    /// </summary>
     public JsonElement Json => JsonDocument.Parse(Body).RootElement;
 
-    /// <summary>
-    /// The value of the header with the given name, null when the request carried none.
-    /// </summary>
+    public JsonElement Data => Json.GetProperty("data");
+
+    public JsonElement Attributes => Data.GetProperty("attributes");
+
     public string? Header(string name) => Headers.GetValueOrDefault(name);
 }

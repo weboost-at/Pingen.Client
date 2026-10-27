@@ -1,16 +1,21 @@
 using FluentAssertions;
-using Microsoft.Extensions.Options;
 using Pingen.Client.Options;
 
 namespace Pingen.Client.Tests.Options;
 
-public class PingenOptionsValidatorTests
+public class PingenOptionsValidatorTests : UnitTestBase
 {
-    [Fact]
-    public void When_both_credentials_are_set_Validate_succeeds()
+    private readonly PingenOptionsValidator _validator = new();
+
+    [Theory]
+    [InlineData("id", "secret")]
+    [InlineData("Zürich-Client", "pässwört-ß")]
+    [InlineData("клиент", "秘密")]
+    [InlineData(" padded ", " x")]
+    public void When_both_credentials_are_set_Validate_succeeds(string id, string secret)
     {
         // Act
-        var result = Validate(new() { ClientId = "id", ClientSecret = "secret" });
+        var result = _validator.Validate(name: null, new() { ClientId = id, ClientSecret = secret });
 
         // Assert
         result.Succeeded.Should().BeTrue();
@@ -20,27 +25,29 @@ public class PingenOptionsValidatorTests
     [InlineData(null, "secret", "ClientId is required.")]
     [InlineData("", "secret", "ClientId is required.")]
     [InlineData("   ", "secret", "ClientId is required.")]
+    [InlineData("\t\r\n", "sécret", "ClientId is required.")]
+    [InlineData("  ", "секрет", "ClientId is required.")]
     [InlineData("id", null, "ClientSecret is required.")]
     [InlineData("id", "", "ClientSecret is required.")]
-    public void When_a_credential_is_missing_Validate_fails_naming_it(string? clientId, string? clientSecret, string expected)
+    [InlineData("Zürich", " ", "ClientSecret is required.")]
+    [InlineData("клиент", "　", "ClientSecret is required.")]
+    public void When_a_credential_is_blank_Validate_fails_naming_it(string? id, string? secret, string failure)
     {
         // Act
-        var result = Validate(new() { ClientId = clientId, ClientSecret = clientSecret });
+        var result = _validator.Validate(name: null, new() { ClientId = id, ClientSecret = secret });
 
         // Assert
         result.Failed.Should().BeTrue();
-        result.Failures.Should().ContainSingle().Which.Should().Be(expected);
+        result.Failures.Should().Equal(failure);
     }
 
     [Fact]
     public void When_nothing_is_configured_Validate_reports_both_credentials()
     {
         // Act
-        var result = Validate(new());
+        var result = _validator.Validate(name: null, new());
 
         // Assert
-        result.Failures.Should().HaveCount(2);
+        result.Failures.Should().Equal("ClientId is required.", "ClientSecret is required.");
     }
-
-    private static ValidateOptionsResult Validate(PingenOptions options) => new PingenOptionsValidator().Validate(name: null, options);
 }

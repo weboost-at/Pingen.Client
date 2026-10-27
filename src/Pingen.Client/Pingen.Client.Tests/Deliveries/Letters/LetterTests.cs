@@ -4,22 +4,23 @@ using Pingen.Client.Common.Json;
 using Pingen.Client.Common.JsonApi;
 using Pingen.Client.Deliveries.Letters;
 using Pingen.Client.Deliveries.ValueTypes;
+using Pingen.Client.Tests.Deliveries.Letters.Support;
 
 namespace Pingen.Client.Tests.Deliveries.Letters;
 
-public class LetterTests
+public class LetterTests : LetterTestBase
 {
     [Fact]
     public void When_a_letter_arrives_Deserialize_maps_every_attribute_relationship_and_ability()
     {
         // Act
-        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>($$"""{ "data": {{LetterJson}} }""", PingenJson.Options)!.Data;
+        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(LetterDocument(), PingenJson.Options)!.Data;
 
         // Assert
-        letter.Id.Should().Be(Guid.Parse("2a4c9e77-2222-4000-8000-000000000002"));
+        letter.Id.Should().Be(Letter.Id);
         letter.Type.Should().Be("letters");
         letter.Attributes.Status.Should().Be("sent");
-        letter.Attributes.FileOriginalName.Should().Be("lörem.pdf");
+        letter.Attributes.FileOriginalName.Should().Be(Letter.FileOriginalName);
         letter.Attributes.FilePages.Should().Be(2);
         letter.Attributes.Address.Should().Be("Hans Meier\nExample street 4\n8000 Zürich\nSwitzerland");
         letter.Attributes.AddressPosition.Should().Be("left");
@@ -30,18 +31,24 @@ public class LetterTests
         letter.Attributes.PriceCurrency.Should().Be("CHF");
         letter.Attributes.PriceValue.Should().Be(1.25m);
         letter.Attributes.PaperTypes.Should().Equal("normal", "qr");
-        letter.Attributes.Fonts.Should().HaveCount(2).And.Contain(font => font.Name == "Helvetica" && font.IsEmbedded);
         letter.Attributes.Source.Should().Be("api");
         letter.Attributes.TrackingNumber.Should().Be("98.1234.11");
         letter.Attributes.SubmittedAt.Should().Be(new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
         letter.Attributes.CreatedAt.Should().Be(new DateTimeOffset(2020, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
         letter.Attributes.UpdatedAt.Should().Be(new DateTimeOffset(2020, 11, 20, 10, 0, 0, TimeSpan.FromHours(1)));
-        letter.Relationships!.Organisation!.Data!.Id.Should().Be("6c3d1f0a-1111-4000-8000-000000000001");
-        letter.Relationships.Organisation.Data.Type.Should().Be("organisations");
-        letter.Relationships.Batch!.Data.Should().BeNull();
+
+        letter.Attributes.Fonts.Should().HaveCount(2);
+        letter.Attributes.Fonts[0].Name.Should().Be("Helvetica");
+        letter.Attributes.Fonts[0].IsEmbedded.Should().BeTrue();
+        letter.Attributes.Fonts[1].IsEmbedded.Should().BeFalse();
+
+        letter.Relationships!.Batch!.Data.Should().BeNull();
         letter.Relationships.Events!.Count.Should().Be(3);
-        letter.Relationships.Events.Href.Should().Be("https://api.pingen.com/organisations/6c3d1f0a/deliveries/letters/2a4c9e77/events");
-        letter.Links!.Self.Should().Be("https://api.pingen.com/organisations/6c3d1f0a/deliveries/letters/2a4c9e77");
+        letter.Relationships.Events.Href.Should().Be($"https://api.pingen.com{LetterPath}/events");
+        letter.Relationships.Organisation!.Data!.Type.Should().Be("organisations");
+        letter.Relationships.Organisation.Data.Id.Should().Be(Organisation.Id.ToString());
+
+        letter.Links!.Self.Should().Be($"https://api.pingen.com{LetterPath}");
         letter.Meta!.Abilities.Should().Contain(new KeyValuePair<string, string>("send-simplex", "permission"));
     }
 
@@ -49,22 +56,22 @@ public class LetterTests
     public void When_an_unsent_letter_arrives_Deserialize_leaves_its_delivery_and_price_null()
     {
         // Act
-        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>($$"""{ "data": {{UnsentLetterJson("valid", "1")}} }""", PingenJson.Options)!.Data;
+        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(UnsentLetterDocument("valid", "1"), PingenJson.Options)!.Data;
 
         // Assert
         letter.Attributes.FilePages.Should().Be(1);
-        letter.Attributes.DeliveryProduct.Should().BeNull();
         letter.Attributes.PrintMode.Should().BeNull();
+        letter.Attributes.PriceValue.Should().BeNull();
         letter.Attributes.PrintSpectrum.Should().BeNull();
         letter.Attributes.PriceCurrency.Should().BeNull();
-        letter.Attributes.PriceValue.Should().BeNull();
+        letter.Attributes.DeliveryProduct.Should().BeNull();
     }
 
     [Fact]
     public void When_a_letter_is_still_validating_Deserialize_leaves_its_page_count_null()
     {
         // Act
-        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>($$"""{ "data": {{UnsentLetterJson("validating", "null")}} }""", PingenJson.Options)!.Data;
+        var letter = JsonSerializer.Deserialize<SingleDocument<Letter>>(UnsentLetterDocument("validating", "null"), PingenJson.Options)!.Data;
 
         // Assert
         letter.Attributes.FilePages.Should().BeNull();
@@ -75,10 +82,14 @@ public class LetterTests
     [InlineData("false", false)]
     [InlineData("1", true)]
     [InlineData("0", false)]
-    public void When_the_embedded_flag_arrives_as_a_boolean_or_a_number_Deserialize_maps_it_the_same_way(string wire, bool expected)
+    [InlineData("-1", true)]
+    public void When_the_embedded_flag_is_a_number_Deserialize_maps_it_like_a_boolean(string wire, bool expected)
     {
         // Act
-        var font = JsonSerializer.Deserialize<LetterFont>($$"""{ "name": "Helvetica", "is_embedded": {{wire}}, "kerning": "unknown" }""", PingenJson.Options)!;
+        var font = JsonSerializer.Deserialize<LetterFont>(
+            $$"""{ "name": "Helvetica", "is_embedded": {{wire}}, "kerning": "unknown" }""",
+            PingenJson.Options
+        )!;
 
         // Assert
         font.Name.Should().Be("Helvetica");
@@ -90,14 +101,8 @@ public class LetterTests
     [InlineData(PaperType.Qr, "qr")]
     [InlineData(PaperType.SepaAt, "sepa_at")]
     [InlineData(PaperType.SepaDe, "sepa_de")]
-    public void When_a_paper_type_is_written_Serialize_uses_its_wire_name(PaperType paperType, string wire)
-    {
-        // Act
-        var json = JsonSerializer.Serialize(paperType, PingenJson.Options);
-
-        // Assert
-        json.Should().Be($"\"{wire}\"");
-    }
+    public void When_a_paper_type_is_written_Serialize_uses_its_wire_name(PaperType paperType, string wire) =>
+        JsonSerializer.Serialize(paperType, PingenJson.Options).Should().Be($"\"{wire}\"");
 
     [Fact]
     public void When_only_the_required_members_are_set_Serialize_omits_every_optional_one_and_the_preset()
@@ -105,16 +110,16 @@ public class LetterTests
         // Arrange
         var options = new LetterCreateOptions
         {
-            FileOriginalName = "lörem.pdf",
+            FileOriginalName = Letter.FileOriginalName,
             AutoSend = false,
-            PresetId = Guid.Parse("6c3d1f0a-1111-4000-8000-000000000001"),
+            PresetId = Letter.PresetId
         };
 
         // Act
         var json = JsonSerializer.Serialize(options, PingenJson.Options);
 
         // Assert
-        json.Should().Be("""{"file_original_name":"lörem.pdf","auto_send":false}""");
+        json.Should().Be($$"""{"file_original_name":"{{Letter.FileOriginalName}}","auto_send":false}""");
     }
 
     [Fact]
@@ -128,9 +133,24 @@ public class LetterTests
             PrintSpectrum = PrintSpectrum.Grayscale,
             MetaData = new()
             {
-                Recipient = new() { Name = "Alex Meier", Street = "Example street", Number = "50A", Zip = "8051", City = "Zürich", Country = "CH" },
-                Sender = new() { Name = "Pingen AG", PoBox = "Postfach 100", Zip = "8000", City = "Zürich", Country = "CH" },
-            },
+                Recipient = new()
+                {
+                    Name = "Alex Meier",
+                    Street = "Example street",
+                    Number = "50A",
+                    Zip = "8051",
+                    City = "Zürich",
+                    Country = "CH"
+                },
+                Sender = new()
+                {
+                    Name = "Pingen AG",
+                    PoBox = "Postfach 100",
+                    Zip = "8000",
+                    City = "Zürich",
+                    Country = "CH"
+                }
+            }
         };
 
         // Act
@@ -142,78 +162,32 @@ public class LetterTests
         );
     }
 
-    private const string LetterJson = """
-                                      {
-                                        "id": "2a4c9e77-2222-4000-8000-000000000002",
-                                        "type": "letters",
-                                        "attributes": {
-                                          "status": "sent",
-                                          "file_original_name": "lörem.pdf",
-                                          "file_pages": 2,
-                                          "address": "Hans Meier\nExample street 4\n8000 Zürich\nSwitzerland",
-                                          "address_position": "left",
-                                          "country": "CH",
-                                          "delivery_product": "fast",
-                                          "print_mode": "simplex",
-                                          "print_spectrum": "color",
-                                          "price_currency": "CHF",
-                                          "price_value": 1.25,
-                                          "paper_types": ["normal", "qr"],
-                                          "fonts": [
-                                            { "name": "Helvetica", "is_embedded": true },
-                                            { "name": "Helvetica-Bold", "is_embedded": 0 }
-                                          ],
-                                          "source": "api",
-                                          "tracking_number": "98.1234.11",
-                                          "submitted_at": "2021-11-19T09:42:48+0100",
-                                          "created_at": "2020-11-19T09:42:48+0100",
-                                          "updated_at": "2020-11-20T10:00:00+0100",
-                                          "cover_page": "an attribute this client does not know"
-                                        },
-                                        "relationships": {
-                                          "organisation": {
-                                            "links": { "related": "https://api.pingen.com/organisations/6c3d1f0a" },
-                                            "data": { "id": "6c3d1f0a-1111-4000-8000-000000000001", "type": "organisations" }
-                                          },
-                                          "batch": { "data": null },
-                                          "events": {
-                                            "links": {
-                                              "related": {
-                                                "href": "https://api.pingen.com/organisations/6c3d1f0a/deliveries/letters/2a4c9e77/events",
-                                                "meta": { "count": 3 }
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "links": { "self": "https://api.pingen.com/organisations/6c3d1f0a/deliveries/letters/2a4c9e77" },
-                                        "meta": { "abilities": { "self": { "cancel": "ok", "delete": "state", "send-simplex": "permission" } } }
-                                      }
-                                      """;
-
-    private static string UnsentLetterJson(string status, string filePages) =>
+    private string UnsentLetterDocument(string status, string filePages) =>
         $$"""
           {
-            "id": "2a4c9e77-2222-4000-8000-000000000003",
-            "type": "letters",
-            "attributes": {
-              "status": "{{status}}",
-              "file_original_name": "lörem.pdf",
-              "file_pages": {{filePages}},
-              "address": "Hans Meier\nExample street 4\n8000 Zürich\nSwitzerland",
-              "address_position": "left",
-              "country": "CH",
-              "delivery_product": null,
-              "print_mode": null,
-              "print_spectrum": null,
-              "price_currency": null,
-              "price_value": null,
-              "paper_types": ["normal"],
-              "fonts": [{ "name": "LiberationSans", "is_embedded": true }],
-              "source": "api",
-              "tracking_number": null,
-              "submitted_at": null,
-              "created_at": "2026-10-11T16:14:40+0200",
-              "updated_at": "2026-10-11T16:14:43+0200"
+            "data": {
+              "id": "{{Letter.Id}}",
+              "type": "letters",
+              "attributes": {
+                "status": "{{status}}",
+                "file_original_name": "{{Letter.FileOriginalName}}",
+                "file_pages": {{filePages}},
+                "address": "Hans Meier\nExample street 4\n8000 Zürich\nSwitzerland",
+                "address_position": "left",
+                "country": "CH",
+                "delivery_product": null,
+                "print_mode": null,
+                "print_spectrum": null,
+                "price_currency": null,
+                "price_value": null,
+                "paper_types": ["normal"],
+                "fonts": [{ "name": "LiberationSans", "is_embedded": true }],
+                "source": "api",
+                "tracking_number": null,
+                "submitted_at": null,
+                "created_at": "2026-10-11T16:14:40+0200",
+                "updated_at": "2026-10-11T16:14:43+0200"
+              }
             }
           }
           """;

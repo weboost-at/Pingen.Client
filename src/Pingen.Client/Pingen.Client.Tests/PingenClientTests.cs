@@ -3,151 +3,182 @@ using System.Text;
 using System.Text.Json;
 using FluentAssertions;
 using Pingen.Client.Common;
-using Pingen.Client.Tests.Tests;
 
 namespace Pingen.Client.Tests;
 
-public class PingenClientTests
+public class PingenClientTests : TestBase
 {
+    [Theory]
+    [InlineData(nameof(PingenClient.Letters))]
+    [InlineData(nameof(PingenClient.Emails))]
+    [InlineData(nameof(PingenClient.Ebills))]
+    [InlineData(nameof(PingenClient.Batches))]
+    [InlineData(nameof(PingenClient.Organisations))]
+    [InlineData(nameof(PingenClient.Users))]
+    [InlineData(nameof(PingenClient.Webhooks))]
+    [InlineData(nameof(PingenClient.Files))]
+    public void When_a_hub_property_is_read_twice_it_returns_the_same_service(string service)
+    {
+        // Arrange
+        var client = Host.Client;
+        var property = typeof(PingenClient).GetProperty(service)!;
+
+        // Act
+        var first = property.GetValue(client);
+        var second = property.GetValue(client);
+
+        // Assert
+        second.Should().BeSameAs(first);
+    }
+
     [Fact]
     public async Task When_list_options_are_given_GetAsync_appends_the_composed_query()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk("""{"data":[]}""");
+        Host.Api.EnqueueOk("""{ "data": [] }""");
+
         var options = new PingenListOptions
         {
             PageNumber = 2,
             PageLimit = 100,
             Sort = "-created_at",
-            Filter = PingenFilter.Where("status", "sent"),
+            Filter = PingenFilter.Where("status", "sent")
         };
 
         // Act
-        await host.Client.GetAsync<JsonElement>("organisations/1/letters", options, TestContext.Current.CancellationToken);
+        await Host.Client.GetAsync<JsonElement>($"organisations/{Organisation.Id}/letters", options, Ct);
 
         // Assert
-        host.Api.Request.Path.Should().Be("/organisations/1/letters");
-        host.Api.Request.Query.Should().Be("?page[number]=2&page[limit]=100&sort=-created_at&filter=%7B%22status%22%3A%22sent%22%7D");
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, $"/organisations/{Organisation.Id}/letters");
+        Host.Api.Request.Query.Should().Be("?page[number]=2&page[limit]=100&sort=-created_at&filter=%7B%22status%22%3A%22sent%22%7D");
     }
 
     [Fact]
     public async Task When_a_body_and_an_idempotency_key_are_given_SendAsync_writes_a_json_api_request()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueJson(HttpStatusCode.Created, """{"data":{"id":"42","type":"letters"}}""");
+        Host.Api.EnqueueJson(HttpStatusCode.Created, $$"""{ "data": { "id": "{{Data.Letter.Id}}", "type": "letters" } }""");
 
         // Act
-        var document = await host.Client.SendAsync<JsonElement>(
+        var document = await Host.Client.SendAsync<JsonElement>(
             method: HttpMethod.Post,
-            path: "organisations/1/letters",
-            body: new { data = new { type = "letters", attributes = new { file_url = "https://files.example.com/1" } } },
-            requestOptions: new() { IdempotencyKey = "3f1c6c9a-0e2f-4b1e-9f5d-1c2b3a4d5e6f" },
-            cancellationToken: TestContext.Current.CancellationToken
+            path: $"organisations/{Organisation.Id}/letters",
+            body: new { data = new { attributes = new { file_url = File.Url.ToString() }, type = "letters" } },
+            requestOptions: new() { IdempotencyKey = Request.IdempotencyKey },
+            cancellationToken: Ct
         );
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Post);
-        host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
-        host.Api.Request.Header("Idempotency-Key").Should().Be("3f1c6c9a-0e2f-4b1e-9f5d-1c2b3a4d5e6f");
-        host.Api.Request.Text.Should().Be("""{"data":{"type":"letters","attributes":{"file_url":"https://files.example.com/1"}}}""");
-        document.GetProperty("data").GetProperty("id").GetString().Should().Be("42");
+        document.GetProperty("data").Assert.Has("id", Data.Letter.Id.ToString());
+
+        Host.Api.Request.Method.Should().Be(HttpMethod.Post);
+        Host.Api.Request.Header("Content-Type").Should().Be(PingenClient.JsonApiMediaType);
+        Host.Api.Request.Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
+        Host.Api.Request.Text.Should().Be($$$"""{"data":{"attributes":{"file_url":"{{{File.Url}}}"},"type":"letters"}}""");
     }
 
     [Fact]
     public async Task When_the_endpoint_answers_without_a_payload_SendAsync_returns_after_the_call()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+        Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
 
         // Act
-        await host.Client.SendAsync(HttpMethod.Patch, "organisations/1/letters/2/cancel", null, null, TestContext.Current.CancellationToken);
+        await Host.Client.SendAsync(
+            HttpMethod.Patch,
+            $"organisations/{Organisation.Id}/letters/{Data.Letter.Id}/cancel",
+            body: null,
+            requestOptions: null,
+            Ct
+        );
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Patch);
-        host.Api.Request.Body.Should().BeEmpty();
+        Host.Api.Request.Assert.Bodyless();
+        Host.Api.Request.Method.Should().Be(HttpMethod.Patch);
     }
 
     [Fact]
-    public async Task When_a_payload_was_asked_for_but_the_body_is_empty_SendAsync_throws_instead_of_answering_with_null()
+    public async Task When_a_payload_is_expected_but_the_body_is_empty_SendAsync_throws_instead_of_returning_null()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty();
+        Host.Api.EnqueueEmpty();
 
         // Act
-        var act = () => host.Client.SendAsync<JsonElement>(HttpMethod.Post, "organisations/1/letters", null, null, TestContext.Current.CancellationToken);
+        var act = () => Host.Client.SendAsync<JsonElement>(
+            HttpMethod.Post,
+            $"organisations/{Organisation.Id}/letters",
+            body: null,
+            requestOptions: null,
+            Ct
+        );
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        exception.Errors.Should().ContainSingle().Which.Title.Should().Be("The response carried no payload");
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.NoContent);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Title.Should().Be("The response carried no payload");
+        exception.Errors[0].Detail.Should().Be(
+            $"POST organisations/{Organisation.Id}/letters answered 204 with an empty body where a resource was expected.");
     }
 
     [Fact]
     public async Task When_the_endpoint_may_skip_the_payload_SendOrDefaultAsync_returns_null_for_an_empty_body()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
+        Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
 
         // Act
-        var document = await host.Client.SendOrDefaultAsync<string>(
+        var document = await Host.Client.SendOrDefaultAsync<string>(
             HttpMethod.Post,
-            "organisations/1/letters/price-calculator",
-            null,
-            null,
-            TestContext.Current.CancellationToken
+            $"organisations/{Organisation.Id}/letters/price-calculator",
+            body: null,
+            requestOptions: null,
+            Ct
         );
 
         // Assert
         document.Should().BeNull();
-        host.Api.Request.Method.Should().Be(HttpMethod.Post);
+
+        Host.Api.Request.Method.Should().Be(HttpMethod.Post);
     }
 
     [Fact]
-    public async Task When_the_api_answers_an_error_document_the_request_throws_a_PingenException_carrying_it()
+    public async Task When_the_api_answers_an_error_document_GetAsync_throws_with_its_errors_and_request_id()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests)
-        {
-            Content = new StringContent(
-                """{"errors":[{"code":"1005","title":"Too Many Attempts.","detail":"Slow down","source":{"parameter":"page[limit]"}}]}""",
-                Encoding.UTF8,
-                PingenClient.JsonApiMediaType
-            ),
-        };
-        response.Headers.Add("X-Request-Id", "0HN7A2K3L4M5N");
-        response.Headers.Add("Retry-After", "30");
-        host.Api.Enqueue(response);
+        var response = Rejection(HttpStatusCode.TooManyRequests);
+        response.Headers.RetryAfter = new(Request.RetryAfter);
+
+        Host.Api.Enqueue(response);
 
         // Act
-        var act = () => host.Client.GetAsync<JsonElement>("organisations", TestContext.Current.CancellationToken);
+        var act = () => Host.Client.GetAsync<JsonElement>("organisations", Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
-        exception.RequestId.Should().Be("0HN7A2K3L4M5N");
-        exception.RetryAfter.Should().Be(TimeSpan.FromSeconds(30));
-        exception.Errors.Should().ContainSingle().Which.Source!.Parameter.Should().Be("page[limit]");
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.TooManyRequests);
+        exception.RequestId.Should().Be(Request.Id);
+        exception.RetryAfter.Should().Be(Request.RetryAfter);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Code.Should().Be(Error.Code);
+        exception.Errors[0].Source!.Pointer.Should().Be(Error.Pointer);
     }
 
-    [Fact]
-    public async Task When_the_error_body_is_not_json_the_request_still_throws_with_the_status()
+    [Theory]
+    [InlineData("<html>maintenance</html>", "text/html")]
+    [InlineData("", PingenClient.JsonApiMediaType)]
+    [InlineData("[]", PingenClient.JsonApiMediaType)]
+    [InlineData("{}", PingenClient.JsonApiMediaType)]
+    [InlineData("null", PingenClient.JsonApiMediaType)]
+    [InlineData("""{ "errors": null }""", PingenClient.JsonApiMediaType)]
+    public async Task When_the_error_body_lists_no_errors_GetAsync_throws_with_none(string body, string mediaType)
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.Enqueue(new(HttpStatusCode.ServiceUnavailable) { Content = new StringContent("<html>maintenance</html>", Encoding.UTF8, "text/html") });
+        Host.Api.Enqueue(new(HttpStatusCode.ServiceUnavailable) { Content = new StringContent(body, Encoding.UTF8, mediaType) });
 
         // Act
-        var act = () => host.Client.GetAsync<JsonElement>("organisations", TestContext.Current.CancellationToken);
+        var act = () => Host.Client.GetAsync<JsonElement>("organisations", Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.ServiceUnavailable);
         exception.Errors.Should().BeEmpty();
     }
 
@@ -155,32 +186,48 @@ public class PingenClientTests
     public async Task When_a_file_endpoint_answers_302_GetLocationAsync_returns_the_presigned_url_unfollowed()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        var response = new HttpResponseMessage(HttpStatusCode.Found);
-        response.Headers.Location = new("https://files.pingen.com/letters/1.pdf?signature=abc");
-        host.Api.Enqueue(response);
+        Host.Api.EnqueueRedirect(File.Location);
 
         // Act
-        var location = await host.Client.GetLocationAsync("organisations/1/letters/2/file", TestContext.Current.CancellationToken);
+        var location = await Host.Client.GetLocationAsync($"organisations/{Organisation.Id}/letters/{Data.Letter.Id}/file", Ct);
 
         // Assert
-        location.Should().Be(new Uri("https://files.pingen.com/letters/1.pdf?signature=abc"));
-        host.Api.Requests.Should().ContainSingle();
-        host.Files.Requests.Should().BeEmpty();
+        location.Should().Be(File.Location);
+
+        Host.Files.Requests.Should().BeEmpty();
+        Host.Api.Requests.Should().ContainSingle();
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.UnprocessableEntity)]
+    [InlineData(HttpStatusCode.OK)]
+    public async Task When_no_location_is_answered_GetLocationAsync_throws_with_the_answer(HttpStatusCode status)
+    {
+        // Arrange
+        Host.Api.Enqueue(Rejection(status));
+
+        // Act
+        var act = () => Host.Client.GetLocationAsync($"organisations/{Organisation.Id}/letters/{Data.Letter.Id}/file", Ct);
+
+        // Assert
+        var exception = await act.Assert.ThrowsAsync(status);
+        exception.RequestId.Should().Be(Request.Id);
+        exception.Errors.Should().ContainSingle();
+        exception.Errors[0].Title.Should().Be(Error.Title);
     }
 
     [Fact]
-    public async Task When_a_presigned_url_is_fetched_the_file_client_sends_no_authorization_header()
+    public async Task When_a_presigned_url_is_fetched_FileClient_sends_no_authorization_header()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Files.Enqueue(new(HttpStatusCode.OK) { Content = new ByteArrayContent([1, 2, 3]) });
+        Host.Files.EnqueueBytes(File.Pdf);
 
         // Act
-        await host.Client.FileClient.GetAsync("https://files.pingen.com/letters/1.pdf?signature=abc", TestContext.Current.CancellationToken);
+        using var response = await Host.Client.FileClient.GetAsync(File.Location, Ct);
 
         // Assert
-        host.Files.Request.Header("Authorization").Should().BeNull();
-        host.Identity.Requests.Should().BeEmpty();
+        Host.Files.Request.Assert.Unauthenticated();
+        Host.Identity.Requests.Should().BeEmpty();
     }
 }

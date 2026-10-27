@@ -3,42 +3,92 @@ using Pingen.Client.Common;
 
 namespace Pingen.Client.Tests.Common;
 
-public class PingenFilterTests
+public class PingenFilterTests : UnitTestBase
 {
-    [Fact]
-    public void When_a_comparison_filter_is_built_ToJson_prepends_the_operator_to_the_value()
-    {
-        // Arrange
-        var date = new DateOnly(2021, 11, 19);
-        var instant = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1));
+    [Theory]
+    [InlineData("sent", """{"status":"sent"}""")]
+    [InlineData("Zürich, Grüezi", """{"status":"Zürich, Grüezi"}""")]
+    [InlineData("O\"Brien", """{"status":"O\"Brien"}""")]
+    [InlineData("C:\\Briefe\tneu", """{"status":"C:\\Briefe\tneu"}""")]
+    [InlineData("<b>Müller & Söhne</b>", """{"status":"<b>Müller & Söhne</b>"}""")]
+    [InlineData("", """{"status":""}""")]
+    public void When_a_value_is_matched_Where_writes_it_as_a_json_string(string value, string json) =>
+        PingenFilter.Where("status", value).ToJson().Should().Be(json);
 
+    [Fact]
+    public void When_a_text_is_compared_ToJson_prefixes_the_operator_to_it()
+    {
         // Act
-        var rendered = new[]
-        {
-            PingenFilter.Where("status", "sent"),
-            PingenFilter.Where("name", "Zürich, Grüezi"),
-            PingenFilter.Where("name", "O\"Brien"),
-            PingenFilter.Where("invoice_date", date),
-            PingenFilter.Not("status", "sent"),
-            PingenFilter.Contains("address", "Bahnhofstrasse"),
-            PingenFilter.GreaterThan("created_at", instant),
-            PingenFilter.GreaterOrEqual("invoice_date", date),
-            PingenFilter.LessThan("created_at", instant),
-            PingenFilter.LessOrEqual("invoice_date", date),
-        }.Select(filter => filter.ToJson());
+        string[] rendered =
+        [
+            PingenFilter.Not("status", "sent").ToJson(),
+            PingenFilter.Contains("address", "Bahnhofstrasse").ToJson(),
+            PingenFilter.GreaterThan("file_pages", "2").ToJson(),
+            PingenFilter.GreaterOrEqual("file_pages", "2").ToJson(),
+            PingenFilter.LessThan("file_pages", "2").ToJson(),
+            PingenFilter.LessOrEqual("file_pages", "2").ToJson()
+        ];
 
         // Assert
         rendered.Should().Equal(
-            """{"status":"sent"}""",
-            """{"name":"Zürich, Grüezi"}""",
-            """{"name":"O\"Brien"}""",
-            """{"invoice_date":"2021-11-19"}""",
             """{"status":"!sent"}""",
             """{"address":"~Bahnhofstrasse"}""",
-            """{"created_at":">2021-11-19T09:42:48+01:00"}""",
+            """{"file_pages":">2"}""",
+            """{"file_pages":">=2"}""",
+            """{"file_pages":"<2"}""",
+            """{"file_pages":"<=2"}"""
+        );
+    }
+
+    [Fact]
+    public void When_a_date_is_compared_ToJson_prefixes_the_operator_to_the_iso_date()
+    {
+        // Arrange
+        var date = new DateOnly(2021, 11, 19);
+
+        // Act
+        string[] rendered =
+        [
+            PingenFilter.Where("invoice_date", date).ToJson(),
+            PingenFilter.GreaterThan("invoice_date", date).ToJson(),
+            PingenFilter.GreaterOrEqual("invoice_date", date).ToJson(),
+            PingenFilter.LessThan("invoice_date", date).ToJson(),
+            PingenFilter.LessOrEqual("invoice_date", date).ToJson()
+        ];
+
+        // Assert
+        rendered.Should().Equal(
+            """{"invoice_date":"2021-11-19"}""",
+            """{"invoice_date":">2021-11-19"}""",
             """{"invoice_date":">=2021-11-19"}""",
-            """{"created_at":"<2021-11-19T09:42:48+01:00"}""",
+            """{"invoice_date":"<2021-11-19"}""",
             """{"invoice_date":"<=2021-11-19"}"""
+        );
+    }
+
+    [Fact]
+    public void When_a_timestamp_is_compared_ToJson_prefixes_the_operator_to_the_wire_format()
+    {
+        // Arrange
+        var instant = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1));
+
+        // Act
+        string[] rendered =
+        [
+            PingenFilter.Where("created_at", instant).ToJson(),
+            PingenFilter.GreaterThan("created_at", instant).ToJson(),
+            PingenFilter.GreaterOrEqual("created_at", instant).ToJson(),
+            PingenFilter.LessThan("created_at", instant).ToJson(),
+            PingenFilter.LessOrEqual("created_at", instant).ToJson()
+        ];
+
+        // Assert
+        rendered.Should().Equal(
+            """{"created_at":"2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":">2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":">=2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":"<2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":"<=2021-11-19T09:42:48+01:00"}"""
         );
     }
 

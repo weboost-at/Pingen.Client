@@ -1,107 +1,87 @@
 using System.Net;
-using System.Text;
 using FluentAssertions;
-using Pingen.Client.Common;
-using Pingen.Client.Files;
-using Pingen.Client.Tests.Tests;
+using Pingen.Client.Tests.Files.Support;
 
 namespace Pingen.Client.Tests.Files;
 
-public class FileServiceTests
+public class FileServiceTests : FileTestBase
 {
-    private const string UploadJson = """
-                                      {
-                                        "data": {
-                                          "id": "934b6a01-a0e6-4b03-8b9a-2a0b1d5b2c7e",
-                                          "type": "file_uploads",
-                                          "attributes": {
-                                            "url": "https://s3.example.com/bucket/934b6a01.pdf?signer=url",
-                                            "url_signature": "$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV",
-                                            "expires_at": "2021-11-19T09:42:48+0100"
-                                          },
-                                          "links": { "self": "https://api.pingen.com/file-upload" }
-                                        }
-                                      }
-                                      """;
-
-    private static readonly byte[] Pdf = "%PDF-1.7 Zürich"u8.ToArray();
-
     [Fact]
     public async Task When_an_upload_target_is_requested_RequestUploadAsync_gets_file_upload_and_maps_the_attributes()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(UploadJson);
+        Host.Api.EnqueueOk(UploadDocument());
 
         // Act
-        var upload = await new FileService(host.Client).RequestUploadAsync(TestContext.Current.CancellationToken);
+        var upload = await Files.RequestUploadAsync(Ct);
 
         // Assert
-        host.Api.Request.Method.Should().Be(HttpMethod.Get);
-        host.Api.Request.Path.Should().Be("/file-upload");
-        host.Api.Request.Header("Authorization").Should().Be($"Bearer {PingenTestHost.AccessToken}");
-        upload.Id.Should().Be(Guid.Parse("934b6a01-a0e6-4b03-8b9a-2a0b1d5b2c7e"));
+        upload.Id.Should().Be(File.UploadId);
         upload.Type.Should().Be("file_uploads");
-        upload.Attributes.Url.Should().Be("https://s3.example.com/bucket/934b6a01.pdf?signer=url");
-        upload.Attributes.UrlSignature.Should().Be("$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV");
+        upload.Attributes.Url.Should().Be(File.Url.ToString());
+        upload.Attributes.UrlSignature.Should().Be(File.Signature);
         upload.Attributes.ExpiresAt.Should().Be(new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(1)));
+
+        Host.Api.Request.Assert.Sent(HttpMethod.Get, "/file-upload");
+        Host.Api.Request.Header("Authorization").Should().Be($"Bearer {PingenTestHost.AccessToken}");
     }
 
     [Fact]
-    public async Task When_content_is_uploaded_UploadAsync_puts_the_raw_bytes_to_the_presigned_url_without_authentication()
+    public async Task When_content_is_uploaded_UploadAsync_puts_the_raw_bytes_to_the_presigned_url_unauthenticated()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(UploadJson);
-        host.Files.EnqueueEmpty(HttpStatusCode.OK);
-        using var content = new MemoryStream(Pdf);
+        Host.Api.EnqueueOk(UploadDocument());
+        Host.Files.EnqueueEmpty(HttpStatusCode.OK);
+
+        using var content = new MemoryStream(File.Pdf);
 
         // Act
-        var upload = await new FileService(host.Client).UploadAsync(content, TestContext.Current.CancellationToken);
+        var upload = await Files.UploadAsync(content, Ct);
 
         // Assert
-        host.Api.Request.Path.Should().Be("/file-upload");
-        host.Files.Request.Method.Should().Be(HttpMethod.Put);
-        host.Files.Request.Url.Should().Be(new Uri("https://s3.example.com/bucket/934b6a01.pdf?signer=url"));
-        host.Files.Request.Body.Should().Equal(Pdf);
-        host.Files.Request.Header("Content-Type").Should().BeNull();
-        host.Files.Request.Header("Authorization").Should().BeNull();
-        upload.Attributes.UrlSignature.Should().Be("$2y$10$BLOzVbYTXrh4LZbSYNVf7eEDrc58vvQ9PRVZABqV");
+        upload.Attributes.UrlSignature.Should().Be(File.Signature);
+
+        Host.Api.Request.Path.Should().Be("/file-upload");
+
+        Host.Files.Request.Body.Should().Equal(File.Pdf);
+        Host.Files.Request.Url.Should().Be(File.Url);
+        Host.Files.Request.Method.Should().Be(HttpMethod.Put);
+        Host.Files.Request.Assert.Unauthenticated();
+        Host.Files.Request.Header("Content-Type").Should().BeNull();
     }
 
     [Fact]
     public async Task When_the_content_cannot_seek_UploadAsync_still_declares_a_content_length()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(UploadJson);
-        host.Files.EnqueueEmpty(HttpStatusCode.OK);
-        await using var content = new UnseekableStream(Pdf);
+        Host.Api.EnqueueOk(UploadDocument());
+        Host.Files.EnqueueEmpty(HttpStatusCode.OK);
+
+        await using var content = new UnseekableStream(File.Pdf);
 
         // Act
-        await new FileService(host.Client).UploadAsync(content, TestContext.Current.CancellationToken);
+        await Files.UploadAsync(content, Ct);
 
         // Assert
-        host.Files.Request.Method.Should().Be(HttpMethod.Put);
-        host.Files.Request.Body.Should().Equal(Pdf);
-        host.Files.Request.Header("Content-Length").Should().Be(Pdf.Length.ToString());
+        Host.Files.Request.Body.Should().Equal(File.Pdf);
+        Host.Files.Request.Method.Should().Be(HttpMethod.Put);
+        Host.Files.Request.Header("Content-Length").Should().Be(File.Pdf.Length.ToString());
     }
 
     [Fact]
     public async Task When_the_presigned_url_rejects_the_upload_UploadAsync_throws_with_the_status()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Api.EnqueueOk(UploadJson);
-        host.Files.Enqueue(new(HttpStatusCode.Forbidden) { Content = new StringContent("<Error>expired</Error>", Encoding.UTF8, "application/xml") });
-        using var content = new MemoryStream(Pdf);
+        Host.Api.EnqueueOk(UploadDocument());
+        Host.Files.Enqueue(StorageRejection(HttpStatusCode.Forbidden));
+
+        using var content = new MemoryStream(File.Pdf);
 
         // Act
-        var act = () => new FileService(host.Client).UploadAsync(content, TestContext.Current.CancellationToken);
+        var act = () => Files.UploadAsync(content, Ct);
 
         // Assert
-        var exception = (await act.Should().ThrowAsync<PingenException>()).Which;
-        exception.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var exception = await act.Assert.ThrowsAsync(HttpStatusCode.Forbidden);
         exception.Errors.Should().BeEmpty();
     }
 
@@ -109,51 +89,38 @@ public class FileServiceTests
     public async Task When_a_presigned_url_is_given_DownloadAsync_streams_it_without_authentication()
     {
         // Arrange
-        using var host = new PingenTestHost();
-        host.Files.Enqueue(new(HttpStatusCode.OK) { Content = new ByteArrayContent(Pdf) });
+        Host.Files.EnqueueBytes(File.Pdf);
+
+        using var downloaded = new MemoryStream();
 
         // Act
-        await using var file = await new FileService(host.Client).DownloadAsync(
-            new("https://s3.example.com/bucket/934b6a01.pdf?signer=url"),
-            TestContext.Current.CancellationToken
-        );
+        await using var file = await Files.DownloadAsync(File.Location, Ct);
+        await file.CopyToAsync(downloaded, Ct);
 
         // Assert
-        using var downloaded = new MemoryStream();
-        await file.CopyToAsync(downloaded, TestContext.Current.CancellationToken);
-        downloaded.ToArray().Should().Equal(Pdf);
-        host.Files.Request.Method.Should().Be(HttpMethod.Get);
-        host.Files.Request.Header("Authorization").Should().BeNull();
-        host.Api.Requests.Should().BeEmpty();
+        downloaded.ToArray().Should().Equal(File.Pdf);
+
+        Host.Api.Requests.Should().BeEmpty();
+
+        Host.Files.Request.Url.Should().Be(File.Location);
+        Host.Files.Request.Method.Should().Be(HttpMethod.Get);
+        Host.Files.Request.Assert.Unauthenticated();
     }
 
-    // A PDF arriving from a network stream or a decompressor cannot seek - StreamContent has no length to declare for it and the upload goes out chunked.
-    private class UnseekableStream(byte[] content) : Stream
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task When_the_presigned_url_refuses_DownloadAsync_throws_with_the_status(HttpStatusCode status)
     {
-        private readonly MemoryStream _content = new(content);
+        // Arrange
+        Host.Files.Enqueue(StorageRejection(status));
 
-        public override bool CanRead => true;
+        // Act
+        var act = () => Files.DownloadAsync(File.Location, Ct);
 
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => false;
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
-        public override void Flush() { }
-
-        public override int Read(byte[] buffer, int offset, int count) => _content.Read(buffer, offset, count);
-
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-
-        public override void SetLength(long value) => throw new NotSupportedException();
-
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        // Assert
+        var exception = await act.Assert.ThrowsAsync(status);
+        exception.Errors.Should().BeEmpty();
     }
 }

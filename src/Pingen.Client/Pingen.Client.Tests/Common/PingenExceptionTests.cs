@@ -4,28 +4,40 @@ using Pingen.Client.Common;
 
 namespace Pingen.Client.Tests.Common;
 
-public class PingenExceptionTests
+public class PingenExceptionTests : UnitTestBase
 {
     [Fact]
     public void When_the_api_reports_errors_PingenException_carries_them_with_the_status_and_headers()
     {
         // Arrange
-        var errors = new[] { new PingenError { Code = "1005", Title = "The given data was invalid." } };
+        PingenError[] errors = [new() { Code = Data.Error.Code, Title = Data.Error.Title, Detail = Data.Error.Detail }];
 
         // Act
         var exception = new PingenException(
             statusCode: HttpStatusCode.TooManyRequests,
             errors: errors,
-            requestId: "0HN7A2K3L4M5N",
-            retryAfter: TimeSpan.FromSeconds(30)
+            requestId: Data.Request.Id,
+            retryAfter: Data.Request.RetryAfter
         );
 
         // Assert
+        exception.Errors.Should().BeSameAs(errors);
+        exception.RequestId.Should().Be(Data.Request.Id);
+        exception.RetryAfter.Should().Be(Data.Request.RetryAfter);
         exception.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
-        exception.Errors.Should().ContainSingle().Which.Code.Should().Be("1005");
-        exception.RequestId.Should().Be("0HN7A2K3L4M5N");
-        exception.RetryAfter.Should().Be(TimeSpan.FromSeconds(30));
-        exception.Message.Should().Be("Pingen request failed with 429 TooManyRequests: The given data was invalid.");
+        exception.Message.Should().Be($"Pingen request failed with 429 TooManyRequests: {Data.Error.Title}");
+    }
+
+    [Theory]
+    [InlineData("Der Brief ist noch nicht gültig", "1005", "Der Brief ist noch nicht gültig")]
+    [InlineData(null, "1005", "1005")]
+    public void When_the_title_is_null_Message_falls_back_to_detail_or_code(string? detail, string code, string shown)
+    {
+        // Act
+        var exception = new PingenException(HttpStatusCode.UnprocessableEntity, [new() { Code = code, Detail = detail }]);
+
+        // Assert
+        exception.Message.Should().Be($"Pingen request failed with 422 UnprocessableEntity: {shown}");
     }
 
     [Fact]
