@@ -33,6 +33,7 @@ public class TestConventionTests
     [InlineData("new Random")]
     [InlineData("raw cancellation token")]
     [InlineData("own test host")]
+    [InlineData("wall clock")]
     [InlineData("intermediate subject")]
     public void A_Banned_Call_Stays_Out_Of_The_Tests(string call) =>
         ConventionViolations.Banned(call).Should().BeEmpty(Listing(ConventionViolations.Banned(call)));

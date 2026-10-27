@@ -114,6 +114,20 @@ public class PingenConfigurationTests : TestBase
     }
 
     [Fact]
+    public void Given_No_Clock_AddPingen_Falls_Back_To_The_System_Clock()
+    {
+        // Arrange
+        using var provider = new ServiceCollection().AddPingen(_ => { }).BuildServiceProvider();
+
+        // Act
+        var clock = provider.GetRequiredService<TimeProvider>();
+
+        // Assert
+        clock.Should().BeSameAs(TimeProvider.System);
+        provider.GetRequiredService<PingenAccessTokens>().Should().NotBeNull();
+    }
+
+    [Fact]
     public void AddPingen_Hands_Out_One_Token_Cache() =>
         Resolve<PingenAccessTokens>().Should().BeSameAs(Resolve<PingenAccessTokens>());
 

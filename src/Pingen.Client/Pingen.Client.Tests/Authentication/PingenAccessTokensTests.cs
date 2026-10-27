@@ -105,6 +105,26 @@ public class PingenAccessTokensTests : AuthenticationTestBase
         Host.Identity.Requests.Should().HaveCount(2);
     }
 
+    [Theory]
+    [InlineData(59_999, 1)]
+    [InlineData(60_000, 2)]
+    [InlineData(60_001, 2)]
+    public async Task Given_A_Two_Minute_Token_GetAsync_Reuses_It_Until_A_Minute_Is_Left(int elapsed, int issued)
+    {
+        // Arrange
+        Host.Identity.Clear();
+        Host.EnqueueToken(Authentication.ExpiringToken, expiresIn: 120).EnqueueToken(Authentication.FreshToken);
+
+        await Tokens.GetAsync(Ct);
+
+        // Act
+        Host.Clock.Advance(TimeSpan.FromMilliseconds(elapsed));
+        await Tokens.GetAsync(Ct);
+
+        // Assert
+        Host.Identity.Requests.Should().HaveCount(issued);
+    }
+
     [Fact]
     public async Task Given_An_Invalidate_During_A_Refresh_GetAsync_Does_Not_Cache_The_Token_It_Waited_For()
     {

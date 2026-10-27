@@ -17,6 +17,7 @@ public static partial class ConventionViolations
         ["new Random"] = new(@"\bnew Random\("),
         ["raw cancellation token"] = new(@"TestContext\.Current\.CancellationToken"),
         ["own test host"] = new(@"\bnew PingenTestHost\("),
+        ["wall clock"] = new(@"\bDateTime(Offset)?\.(Now|UtcNow|Today)\b"),
         ["intermediate subject"] = new(@"\)\.Which\b|\)\.And\.|\)\.Subject\b")
     };
 
