@@ -18,6 +18,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Using Include="Pingen.Client.Tests.Testing.Assertions"/>
+        <Using Include="Pingen.Client.Tests.Testing.Bases"/>
+        <Using Include="Pingen.Client.Tests.Testing.Data"/>
         <Using Include="Pingen.Client.Tests.Testing.Hosting"/>
         <Using Include="Xunit"/>
     </ItemGroup>
