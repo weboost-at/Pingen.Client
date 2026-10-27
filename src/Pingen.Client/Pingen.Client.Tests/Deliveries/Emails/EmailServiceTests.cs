@@ -68,6 +68,7 @@ public class EmailServiceTests : EmailTestBase
 
         Host.Api.Requests.Should().HaveCount(2);
         Host.Api.Requests[0].Assert.Query("?page[limit]=1");
+        Host.Api.Requests[1].Assert.Sent(HttpMethod.Get, EmailsPath);
         Host.Api.Requests[1].Assert.Query("?page[number]=2&page[limit]=1");
     }
 
@@ -116,7 +117,7 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
-    public async Task When_no_url_is_known_yet_CreateAsync_uploads_the_stream_and_posts_its_url_and_signature()
+    public async Task When_no_url_is_known_yet_CreateAsync_uploads_the_stream_and_posts_its_target_with_the_key()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument()).EnqueueJson(HttpStatusCode.Created, EmailDocument());
@@ -125,9 +126,17 @@ public class EmailServiceTests : EmailTestBase
         using var content = new MemoryStream(File.Pdf);
 
         // Act
-        await Emails.CreateAsync(Organisation.Id, content, EmailCreateOptions(), cancellationToken: Ct);
+        var email = await Emails.CreateAsync(
+            Organisation.Id,
+            content,
+            EmailCreateOptions(),
+            new() { IdempotencyKey = Request.IdempotencyKey },
+            Ct
+        );
 
         // Assert
+        email.Id.Should().Be(Email.Id);
+
         Host.Api.Requests[0].Path.Should().Be("/file-upload");
 
         Host.Files.Request.Body.Should().Equal(File.Pdf);
@@ -136,6 +145,7 @@ public class EmailServiceTests : EmailTestBase
         Host.Files.Request.Assert.Unauthenticated();
 
         Host.Api.Requests[1].Assert.Sent(HttpMethod.Post, EmailsPath);
+        Host.Api.Requests[1].Header("Idempotency-Key").Should().Be(Request.IdempotencyKey);
         Host.Api.Requests[1].Attributes.Assert.Has("file_url", File.Url.ToString());
         Host.Api.Requests[1].Attributes.Assert.Has("file_url_signature", File.Signature);
     }
@@ -214,6 +224,22 @@ public class EmailServiceTests : EmailTestBase
     }
 
     [Fact]
+    public async Task When_the_file_is_asked_for_GetFileLocationAsync_returns_the_location_unfollowed()
+    {
+        // Arrange
+        Host.Api.EnqueueRedirect(File.Location);
+
+        // Act
+        var location = await Emails.GetFileLocationAsync(Organisation.Id, Email.Id, Ct);
+
+        // Assert
+        location.Should().Be(File.Location);
+
+        Host.Files.Requests.Should().BeEmpty();
+        Host.Api.Request.Path.Should().Be($"{EmailPath}/file");
+    }
+
+    [Fact]
     public async Task When_the_file_endpoint_redirects_DownloadFileAsync_follows_the_location_without_authentication()
     {
         // Arrange
@@ -286,6 +312,9 @@ public class EmailServiceTests : EmailTestBase
         // Assert
         downloaded.ToArray().Should().Equal(File.Pdf);
 
+        Host.Api.Request.Path.Should().Be($"{EmailPath}/events/{Email.EventId}/image");
+
+        Host.Files.Request.Url.Should().Be(File.Location);
         Host.Files.Request.Assert.Unauthenticated();
     }
 
