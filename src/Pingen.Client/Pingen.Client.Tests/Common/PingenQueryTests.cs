@@ -3,14 +3,14 @@ using Pingen.Client.Common;
 
 namespace Pingen.Client.Tests.Common;
 
-public class PingenQueryTests
+public class PingenQueryTests : UnitTestBase
 {
     [Fact]
     public void When_no_option_is_set_Build_returns_an_empty_string()
     {
         // Act
         var withoutOptions = PingenQuery.Build(null);
-        var withEmptyOptions = PingenQuery.Build(new PingenListOptions());
+        var withEmptyOptions = PingenQuery.Build(new());
 
         // Assert
         withoutOptions.Should().BeEmpty();
@@ -36,8 +36,8 @@ public class PingenQueryTests
             Fields = new Dictionary<string, string>
             {
                 ["organisations"] = "name",
-                ["letters"] = "status,created_at",
-            },
+                ["letters"] = "status,created_at"
+            }
         };
 
         // Act
@@ -48,16 +48,11 @@ public class PingenQueryTests
             "?page[number]=2&page[limit]=50&sort=-created_at,real_id" +
             "&filter=%7B%22and%22%3A%5B%7B%22status%22%3A%22sent%22%7D%2C%7B%22created_at%22%3A%22%3E2021-11-19T09%3A42%3A48%2B01%3A00%22%7D%5D%7D" +
             "&q=Z%C3%BCrich%20AG&include=organisation,batch&language=de-DE" +
-            "&fields[letters]=status,created_at&fields[organisations]=name");
+            "&fields[letters]=status,created_at&fields[organisations]=name"
+        );
     }
 
     [Fact]
-    public void When_only_paging_is_set_Build_emits_nothing_else()
-    {
-        // Act
-        var query = PingenQuery.Build(new PingenListOptions { PageLimit = 100 });
-
-        // Assert
-        query.Should().Be("?page[limit]=100");
-    }
+    public void When_only_paging_is_set_Build_emits_nothing_else() =>
+        PingenQuery.Build(new() { PageLimit = 100 }).Should().Be("?page[limit]=100");
 }
