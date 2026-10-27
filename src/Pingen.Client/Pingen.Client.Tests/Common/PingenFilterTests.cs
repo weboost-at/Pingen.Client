@@ -22,13 +22,21 @@ public class PingenFilterTests : UnitTestBase
         string[] rendered =
         [
             PingenFilter.Not("status", "sent").ToJson(),
-            PingenFilter.Contains("address", "Bahnhofstrasse").ToJson()
+            PingenFilter.Contains("address", "Bahnhofstrasse").ToJson(),
+            PingenFilter.GreaterThan("file_pages", "2").ToJson(),
+            PingenFilter.GreaterOrEqual("file_pages", "2").ToJson(),
+            PingenFilter.LessThan("file_pages", "2").ToJson(),
+            PingenFilter.LessOrEqual("file_pages", "2").ToJson()
         ];
 
         // Assert
         rendered.Should().Equal(
             """{"status":"!sent"}""",
-            """{"address":"~Bahnhofstrasse"}"""
+            """{"address":"~Bahnhofstrasse"}""",
+            """{"file_pages":">2"}""",
+            """{"file_pages":">=2"}""",
+            """{"file_pages":"<2"}""",
+            """{"file_pages":"<=2"}"""
         );
     }
 
@@ -42,14 +50,18 @@ public class PingenFilterTests : UnitTestBase
         string[] rendered =
         [
             PingenFilter.Where("invoice_date", date).ToJson(),
+            PingenFilter.GreaterThan("invoice_date", date).ToJson(),
             PingenFilter.GreaterOrEqual("invoice_date", date).ToJson(),
+            PingenFilter.LessThan("invoice_date", date).ToJson(),
             PingenFilter.LessOrEqual("invoice_date", date).ToJson()
         ];
 
         // Assert
         rendered.Should().Equal(
             """{"invoice_date":"2021-11-19"}""",
+            """{"invoice_date":">2021-11-19"}""",
             """{"invoice_date":">=2021-11-19"}""",
+            """{"invoice_date":"<2021-11-19"}""",
             """{"invoice_date":"<=2021-11-19"}"""
         );
     }
@@ -63,14 +75,20 @@ public class PingenFilterTests : UnitTestBase
         // Act
         string[] rendered =
         [
+            PingenFilter.Where("created_at", instant).ToJson(),
             PingenFilter.GreaterThan("created_at", instant).ToJson(),
-            PingenFilter.LessThan("created_at", instant).ToJson()
+            PingenFilter.GreaterOrEqual("created_at", instant).ToJson(),
+            PingenFilter.LessThan("created_at", instant).ToJson(),
+            PingenFilter.LessOrEqual("created_at", instant).ToJson()
         ];
 
         // Assert
         rendered.Should().Equal(
+            """{"created_at":"2021-11-19T09:42:48+01:00"}""",
             """{"created_at":">2021-11-19T09:42:48+01:00"}""",
-            """{"created_at":"<2021-11-19T09:42:48+01:00"}"""
+            """{"created_at":">=2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":"<2021-11-19T09:42:48+01:00"}""",
+            """{"created_at":"<=2021-11-19T09:42:48+01:00"}"""
         );
     }
 
