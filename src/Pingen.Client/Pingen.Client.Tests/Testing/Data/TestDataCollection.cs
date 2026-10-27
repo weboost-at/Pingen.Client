@@ -29,6 +29,8 @@ public class TestDataCollection(TestFaker faker)
 
     public RequestTestData Request { get; } = new(faker);
 
+    public ResourceTestData Resource { get; } = new(faker);
+
     public UserTestData User { get; } = new(faker);
 
     public WebhookTestData Webhook { get; } = new(faker);

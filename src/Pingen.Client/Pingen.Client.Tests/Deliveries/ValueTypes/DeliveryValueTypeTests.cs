@@ -5,7 +5,7 @@ using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Tests.Deliveries.ValueTypes;
 
-public class DeliveryValueTypeTests
+public class DeliveryValueTypeTests : UnitTestBase
 {
     [Theory]
     [InlineData(DeliveryProduct.Fast, "\"fast\"")]
@@ -19,7 +19,7 @@ public class DeliveryValueTypeTests
     [InlineData(PrintSpectrum.Grayscale, "\"grayscale\"")]
     [InlineData(AddressPosition.Left, "\"left\"")]
     [InlineData(AddressPosition.Right, "\"right\"")]
-    public void When_a_delivery_value_type_crosses_the_wire_it_round_trips_through_its_lowercase_name(object value, string wire)
+    public void When_a_value_round_trips_Serialize_and_Deserialize_use_its_lowercase_name(object value, string wire)
     {
         // Act
         var written = JsonSerializer.Serialize(value, PingenJson.Options);
@@ -33,6 +33,11 @@ public class DeliveryValueTypeTests
     [Theory]
     [InlineData("\"Fast\"")]
     [InlineData("\"FAST\"")]
+    [InlineData("\"fäst\"")]
+    [InlineData("\"electronic_email\"")]
+    [InlineData("\"\"")]
+    [InlineData("null")]
+    [InlineData("\"0\"")]
     [InlineData("0")]
     public void When_the_wire_value_is_not_a_declared_name_Deserialize_throws(string wire)
     {
