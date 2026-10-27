@@ -83,7 +83,7 @@ public class LetterTests : LetterTestBase
     [InlineData("1", true)]
     [InlineData("0", false)]
     [InlineData("-1", true)]
-    public void When_the_embedded_flag_is_a_boolean_or_a_number_Deserialize_maps_it_the_same_way(string wire, bool expected)
+    public void When_the_embedded_flag_is_a_number_Deserialize_maps_it_like_a_boolean(string wire, bool expected)
     {
         // Act
         var font = JsonSerializer.Deserialize<LetterFont>(
