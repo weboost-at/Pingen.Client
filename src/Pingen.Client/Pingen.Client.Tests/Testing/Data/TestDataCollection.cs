@@ -4,6 +4,7 @@ using Pingen.Client.Tests.Deliveries.Ebills.Support;
 using Pingen.Client.Tests.Deliveries.Emails.Support;
 using Pingen.Client.Tests.Deliveries.Letters.Support;
 using Pingen.Client.Tests.Files.Support;
+using Pingen.Client.Tests.Options.Support;
 using Pingen.Client.Tests.Organisations.Support;
 using Pingen.Client.Tests.Users.Support;
 using Pingen.Client.Tests.Webhooks.Support;
@@ -24,6 +25,8 @@ public class TestDataCollection(TestFaker faker)
     public FileTestData File { get; } = new(faker);
 
     public LetterTestData Letter { get; } = new(faker);
+
+    public OptionsTestData Options { get; } = new(faker);
 
     public OrganisationTestData Organisation { get; } = new(faker);
 
