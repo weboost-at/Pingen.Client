@@ -38,10 +38,16 @@ Full architecture and wire contracts: .tmp/IMPLEMENTATION_PLAN.md (gitignored wo
 - xunit.v3 + FluentAssertions 7 (`Should()`); test files mirror source folders; names
   `When_<condition>_<Method>_<expected>` or `Given_…_When_…_It_…` in underscore form.
 - Only `// Arrange`, `// Act`, `// Assert` comments inside tests. `[Theory]`/`[InlineData]` for
-  value tables (include unicode/edge values). `TestContext.Current.CancellationToken` when passing tokens.
-- Tests go through real DI via the shared `PingenTestHost` + `RecordingHandler` (Tests/ folder);
-  never mock HttpClient with a mocking framework. Until phase 8 wires service registrations,
-  construct the service under test from the DI-resolved client (`new LetterService(host.Client)`).
+  value tables (include unicode/edge values). The base's `Ct` (the test's cancellation token) when
+  passing tokens.
+- Tests go through real DI via the shared `PingenTestHost` + `RecordingHandler` (Testing/Hosting),
+  reached as `Host` on `TestBase`; the service under test comes from the container
+  (`Resolve<LetterService>()`). Never mock HttpClient with a mocking framework.
+- Layout and style follow the `csharp-test-formatting` and `test-data-catalog` skills: shared
+  bases, `TestFaker` catalog and `x.Assert.Y()` helpers in `Testing/`, a slice's base, data and
+  helpers in `<Slice>/Support/`; values come from `Data` (a seeded `Random`, no Bogus); one
+  assertion per statement, no `.Which`/`.And`. `Testing/Conventions` enforces names, 120-column
+  declarations, comments and banned calls.
 - Prefer fewer, denser tests; shared setup in test bases; never wrap a bug in a green test.
 
 ## Commits
