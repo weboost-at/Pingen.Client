@@ -9,7 +9,11 @@ namespace Pingen.Client.Authentication;
 /// Holds the client-credentials access token every Pingen request shares, fetching a new one whenever the cached one is
 /// spent.
 /// </summary>
-public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<PingenOptions> options, TimeProvider timeProvider)
+public class PingenAccessTokens(
+    IHttpClientFactory httpClientFactory,
+    IOptions<PingenOptions> options,
+    TimeProvider timeProvider
+)
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1, maxCount: 1);
 
