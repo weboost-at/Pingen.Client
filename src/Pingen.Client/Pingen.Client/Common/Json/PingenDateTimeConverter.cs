@@ -22,7 +22,7 @@ public class PingenDateTimeConverter : JsonConverter<DateTimeOffset>
     public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // The serializer adds the JSON path to a JsonException - a FormatException would reach the caller bare.
-        if (!DateTimeOffset.TryParse(reader.GetString(), CultureInfo.InvariantCulture, out var instant)) throw new JsonException();
+        if (!IsTimestamp(reader.GetString(), out var instant)) throw new JsonException();
 
         return instant;
     }
@@ -32,6 +32,9 @@ public class PingenDateTimeConverter : JsonConverter<DateTimeOffset>
     /// </summary>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString(WireFormat, CultureInfo.InvariantCulture));
+
+    private static bool IsTimestamp(string? text, out DateTimeOffset instant) =>
+        DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, out instant);
 }
 
 /// <summary>

@@ -44,7 +44,10 @@ public class PingenDateTimeConverterTests : UnitTestBase
     public void Given_No_Timestamp_Read_Throws_A_JsonException_Naming_Its_Path(string wire)
     {
         // Act
-        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset>>($$"""{"created_at":{{wire}}}""", PingenJson.Options);
+        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset>>(
+            $$"""{"created_at":{{wire}}}""",
+            PingenJson.Options
+        );
 
         // Assert
         read.Should().Throw<JsonException>().Where(exception => exception.Path == "$.created_at");
@@ -56,7 +59,10 @@ public class PingenDateTimeConverterTests : UnitTestBase
     public void Given_No_Timestamp_A_Nullable_Read_Throws_A_JsonException_Naming_Its_Path(string wire)
     {
         // Act
-        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset?>>($$"""{"sent_at":{{wire}}}""", PingenJson.Options);
+        var read = () => JsonSerializer.Deserialize<Dictionary<string, DateTimeOffset?>>(
+            $$"""{"sent_at":{{wire}}}""",
+            PingenJson.Options
+        );
 
         // Assert
         read.Should().Throw<JsonException>().Where(exception => exception.Path == "$.sent_at");
