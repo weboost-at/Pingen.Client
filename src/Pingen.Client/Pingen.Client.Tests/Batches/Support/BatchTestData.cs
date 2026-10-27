@@ -18,9 +18,10 @@ public class BatchTestData(TestFaker faker)
 
     public Guid PresetId { get; } = faker.Guid();
 
-    public TestValue<string> Name { get; } =
-        new TestValue<string>(faker.PickRandom(CreatedNames))
-            .SetUpdated(faker.PickRandom(UpdatedNames));
+    public TestValue<string> Name { get; } = new(
+        @default: faker.PickRandom(CreatedNames),
+        updated: faker.PickRandom(UpdatedNames)
+    );
 
     public string FileOriginalName { get; } = faker.PickRandom(FileNames);
 
