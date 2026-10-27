@@ -83,6 +83,22 @@ public class PingenConfigurationTests : TestBase
         Host.Provider.GetRequiredService(service).Should().BeOfType(service);
 
     [Fact]
+    public void When_the_client_is_registered_AddPingen_authenticates_it_and_leaves_redirects_unfollowed()
+    {
+        // Arrange
+        using var provider = new ServiceCollection().AddPingen(_ => { }).BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpMessageHandlerFactory>();
+
+        // Act
+        List<HttpMessageHandler> chain = [factory.CreateHandler(nameof(PingenClient))];
+        while (chain[^1] is DelegatingHandler { InnerHandler: { } inner }) chain.Add(inner);
+
+        // Assert
+        chain.OfType<PingenAuthenticationHandler>().Should().ContainSingle();
+        chain.OfType<HttpClientHandler>().Select(handler => handler.AllowAutoRedirect).Should().Equal(false);
+    }
+
+    [Fact]
     public void When_the_token_cache_is_resolved_twice_AddPingen_hands_out_the_same_one() =>
         Resolve<PingenAccessTokens>().Should().BeSameAs(Resolve<PingenAccessTokens>());
 
