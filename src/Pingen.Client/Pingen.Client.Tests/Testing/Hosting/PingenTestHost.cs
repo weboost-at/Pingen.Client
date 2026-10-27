@@ -16,6 +16,7 @@ public class PingenTestHost : IDisposable
     public PingenTestHost(Action<PingenOptions>? configure = null)
     {
         var services = new ServiceCollection();
+        services.AddSingleton<TimeProvider>(Clock);
         services.AddPingen(options =>
         {
             options.ClientId = ClientId;
@@ -31,6 +32,8 @@ public class PingenTestHost : IDisposable
         Provider = services.BuildServiceProvider();
         EnqueueToken();
     }
+
+    public TestClock Clock { get; } = new();
 
     public RecordingHandler Api { get; } = new();
 

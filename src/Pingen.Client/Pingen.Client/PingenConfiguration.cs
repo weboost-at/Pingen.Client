@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Pingen.Client.Authentication;
 using Pingen.Client.Batches;
@@ -41,6 +42,7 @@ public static class PingenConfiguration
     private static IServiceCollection AddPingenServices(IServiceCollection services)
     {
         services.AddSingleton<IValidateOptions<PingenOptions>, PingenOptionsValidator>();
+        services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<PingenAccessTokens>();
         services.AddTransient<PingenAuthenticationHandler>();
 
@@ -50,9 +52,6 @@ public static class PingenConfiguration
             client.BaseAddress = options.IdentityAddress ?? options.Environment.IdentityAddress;
             client.DefaultRequestHeaders.Accept.Add(new("application/json"));
         });
-
-        // Presigned URLs carry their own signature and reject an Authorization header - this client stays untouched.
-        services.AddHttpClient(PingenClient.FilesClientName);
 
         services.AddHttpClient<PingenClient>((provider, client) =>
             {

@@ -9,7 +9,11 @@ namespace Pingen.Client.Authentication;
 /// Holds the client-credentials access token every Pingen request shares, fetching a new one whenever the cached one is
 /// spent.
 /// </summary>
-public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<PingenOptions> options)
+public class PingenAccessTokens(
+    IHttpClientFactory httpClientFactory,
+    IOptions<PingenOptions> options,
+    TimeProvider timeProvider
+)
 {
     private readonly SemaphoreSlim _gate = new(initialCount: 1, maxCount: 1);
 
@@ -63,7 +67,12 @@ public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<P
 
     private string? Cached()
     {
-        lock (_cache) return _token is { IsExpired: false } token ? token.Value : null;
+        lock (_cache)
+        {
+            if (_token is null || _token.IsExpiredAt(timeProvider.GetUtcNow())) return null;
+
+            return _token.Value;
+        }
     }
 
     private async Task<AccessToken> RequestAsync(CancellationToken cancellationToken)
@@ -83,6 +92,6 @@ public class PingenAccessTokens(IHttpClientFactory httpClientFactory, IOptions<P
         if (!response.IsSuccessStatusCode) throw await PingenClient.ToExceptionAsync(response, cancellationToken);
 
         var issued = await response.Content.ReadFromJsonAsync<AccessTokenResponse>(PingenJson.Options, cancellationToken);
-        return new(issued!.AccessToken, DateTimeOffset.UtcNow.AddSeconds(issued.ExpiresIn));
+        return new(issued!.AccessToken, timeProvider.GetUtcNow().AddSeconds(issued.ExpiresIn));
     }
 }

@@ -16,16 +16,25 @@ public class PingenDateTimeConverter : JsonConverter<DateTimeOffset>
     public const string WireFormat = "yyyy-MM-dd'T'HH:mm:sszzz";
 
     /// <summary>
-    /// Reads a timestamp, accepting both the colon-less <c>+0100</c> Pingen writes and the ISO <c>+01:00</c> form.
+    /// Reads a timestamp, accepting both the colon-less <c>+0100</c> Pingen writes and the ISO <c>+01:00</c> form, and
+    /// throws a <see cref="JsonException"/> for anything else.
     /// </summary>
-    public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-        DateTimeOffset.Parse(reader.GetString() ?? "", CultureInfo.InvariantCulture);
+    public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        // The serializer adds the JSON path to a JsonException - a FormatException would reach the caller bare.
+        if (!IsTimestamp(reader.GetString(), out var instant)) throw new JsonException();
+
+        return instant;
+    }
 
     /// <summary>
     /// Writes the timestamp in the <see cref="WireFormat"/> the API accepts.
     /// </summary>
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options) =>
         writer.WriteStringValue(value.ToString(WireFormat, CultureInfo.InvariantCulture));
+
+    private static bool IsTimestamp(string? text, out DateTimeOffset instant) =>
+        DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, out instant);
 }
 
 /// <summary>
@@ -34,11 +43,17 @@ public class PingenDateTimeConverter : JsonConverter<DateTimeOffset>
 /// </summary>
 public class PingenNullableDateTimeConverter : JsonConverter<DateTimeOffset?>
 {
+    private static readonly PingenDateTimeConverter Timestamp = new();
+
     /// <summary>
     /// Reads a timestamp that may not have happened yet, mapping the empty string Pingen sends for it to <c>null</c>.
     /// </summary>
-    public override DateTimeOffset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-        reader.GetString() is { Length: > 0 } value ? DateTimeOffset.Parse(value, CultureInfo.InvariantCulture) : null;
+    public override DateTimeOffset? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.GetString() is not { Length: > 0 }) return null;
+
+        return Timestamp.Read(ref reader, typeof(DateTimeOffset), options);
+    }
 
     /// <summary>
     /// Writes the timestamp in the <see cref="PingenDateTimeConverter.WireFormat"/> the API accepts, or JSON

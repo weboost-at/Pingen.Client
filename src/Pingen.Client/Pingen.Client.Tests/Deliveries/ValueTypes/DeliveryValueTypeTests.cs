@@ -19,7 +19,7 @@ public class DeliveryValueTypeTests : UnitTestBase
     [InlineData(PrintSpectrum.Grayscale, "\"grayscale\"")]
     [InlineData(AddressPosition.Left, "\"left\"")]
     [InlineData(AddressPosition.Right, "\"right\"")]
-    public void When_a_value_round_trips_Serialize_and_Deserialize_use_its_lowercase_name(object value, string wire)
+    public void A_Value_Round_Trips_Through_Its_Lowercase_Name(object value, string wire)
     {
         // Act
         var written = JsonSerializer.Serialize(value, PingenJson.Options);
@@ -39,7 +39,7 @@ public class DeliveryValueTypeTests : UnitTestBase
     [InlineData("null")]
     [InlineData("\"0\"")]
     [InlineData("0")]
-    public void When_the_wire_value_is_not_a_declared_name_Deserialize_throws(string wire)
+    public void Given_An_Undeclared_Wire_Value_Deserialize_Throws(string wire)
     {
         // Act
         var read = () => JsonSerializer.Deserialize<DeliveryProduct>(wire, PingenJson.Options);

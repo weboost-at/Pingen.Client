@@ -29,8 +29,8 @@ public class PingenClient(HttpClient httpClient, IHttpClientFactory httpClientFa
     public const string IdentityClientName = "PingenIdentity";
 
     /// <summary>
-    /// The name of the HTTP client talking to presigned file URLs, registered without the authentication handler since
-    /// a bearer token invalidates a presigned signature.
+    /// The name of the HTTP client talking to presigned file URLs, which carries no authentication handler since a
+    /// bearer token invalidates a presigned signature.
     /// </summary>
     public const string FilesClientName = "PingenFiles";
 

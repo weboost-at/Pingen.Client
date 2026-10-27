@@ -17,7 +17,7 @@ public class PingenClientTests : TestBase
     [InlineData(nameof(PingenClient.Users))]
     [InlineData(nameof(PingenClient.Webhooks))]
     [InlineData(nameof(PingenClient.Files))]
-    public void When_a_hub_property_is_read_twice_it_returns_the_same_service(string service)
+    public void Given_A_Hub_Property_Read_Twice_It_Returns_The_Same_Service(string service)
     {
         // Arrange
         var client = Host.Client;
@@ -32,7 +32,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_list_options_are_given_GetAsync_appends_the_composed_query()
+    public async Task Given_List_Options_GetAsync_Appends_The_Composed_Query()
     {
         // Arrange
         Host.Api.EnqueueOk("""{ "data": [] }""");
@@ -54,7 +54,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_a_body_and_an_idempotency_key_are_given_SendAsync_writes_a_json_api_request()
+    public async Task Given_A_Body_And_An_Idempotency_Key_SendAsync_Writes_A_Json_Api_Request()
     {
         // Arrange
         Host.Api.EnqueueJson(HttpStatusCode.Created, $$"""{ "data": { "id": "{{Data.Letter.Id}}", "type": "letters" } }""");
@@ -78,7 +78,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_the_endpoint_answers_without_a_payload_SendAsync_returns_after_the_call()
+    public async Task Given_An_Answer_Without_A_Payload_SendAsync_Returns_After_The_Call()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -98,7 +98,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_a_payload_is_expected_but_the_body_is_empty_SendAsync_throws_instead_of_returning_null()
+    public async Task Given_An_Empty_Body_Where_A_Payload_Is_Due_SendAsync_Throws_Instead_Of_Returning_Null()
     {
         // Arrange
         Host.Api.EnqueueEmpty();
@@ -121,7 +121,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_the_endpoint_may_skip_the_payload_SendOrDefaultAsync_returns_null_for_an_empty_body()
+    public async Task Given_An_Empty_Body_SendOrDefaultAsync_Returns_Null()
     {
         // Arrange
         Host.Api.EnqueueEmpty(HttpStatusCode.Accepted);
@@ -142,7 +142,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_the_api_answers_an_error_document_GetAsync_throws_with_its_errors_and_request_id()
+    public async Task Given_An_Error_Document_GetAsync_Throws_With_Its_Errors_And_Request_Id()
     {
         // Arrange
         var response = Rejection(HttpStatusCode.TooManyRequests);
@@ -169,7 +169,7 @@ public class PingenClientTests : TestBase
     [InlineData("{}", PingenClient.JsonApiMediaType)]
     [InlineData("null", PingenClient.JsonApiMediaType)]
     [InlineData("""{ "errors": null }""", PingenClient.JsonApiMediaType)]
-    public async Task When_the_error_body_lists_no_errors_GetAsync_throws_with_none(string body, string mediaType)
+    public async Task Given_An_Error_Body_Without_Errors_GetAsync_Throws_With_None(string body, string mediaType)
     {
         // Arrange
         Host.Api.Enqueue(new(HttpStatusCode.ServiceUnavailable) { Content = new StringContent(body, Encoding.UTF8, mediaType) });
@@ -183,7 +183,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_a_file_endpoint_answers_302_GetLocationAsync_returns_the_presigned_url_unfollowed()
+    public async Task Given_A_302_GetLocationAsync_Returns_The_Presigned_Url_Unfollowed()
     {
         // Arrange
         Host.Api.EnqueueRedirect(File.Location);
@@ -202,7 +202,7 @@ public class PingenClientTests : TestBase
     [InlineData(HttpStatusCode.NotFound)]
     [InlineData(HttpStatusCode.UnprocessableEntity)]
     [InlineData(HttpStatusCode.OK)]
-    public async Task When_no_location_is_answered_GetLocationAsync_throws_with_the_answer(HttpStatusCode status)
+    public async Task Given_No_Location_GetLocationAsync_Throws_With_The_Answer(HttpStatusCode status)
     {
         // Arrange
         Host.Api.Enqueue(Rejection(status));
@@ -218,7 +218,7 @@ public class PingenClientTests : TestBase
     }
 
     [Fact]
-    public async Task When_a_presigned_url_is_fetched_FileClient_sends_no_authorization_header()
+    public async Task FileClient_Sends_No_Authorization_Header()
     {
         // Arrange
         Host.Files.EnqueueBytes(File.Pdf);

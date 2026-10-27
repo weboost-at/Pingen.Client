@@ -36,7 +36,9 @@ Full architecture and wire contracts: .tmp/IMPLEMENTATION_PLAN.md (gitignored wo
 ## Tests (binding)
 
 - xunit.v3 + FluentAssertions 7 (`Should()`); test files mirror source folders; names
-  `When_<condition>_<Method>_<expected>` or `Given_…_When_…_It_…` in underscore form.
+  `Given_<State>_<Outcome>`, or the outcome alone for the base case, every word capitalised; the
+  class names the subject, so no `When_` and no subject prefix, a service's method stays in the
+  outcome (`Given_Two_Pages_ListAutoPagingAsync_Yields_Both_And_Stops_At_The_Last`).
 - Only `// Arrange`, `// Act`, `// Assert` comments inside tests. `[Theory]`/`[InlineData]` for
   value tables (include unicode/edge values). The base's `Ct` (the test's cancellation token) when
   passing tokens.

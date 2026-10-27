@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Common;
 public class PingenErrorTests : UnitTestBase
 {
     [Fact]
-    public void When_the_api_rejects_a_request_Deserialize_maps_every_error_member()
+    public void Deserialize_Maps_Every_Error_Member()
     {
         // Act
         var document = JsonSerializer.Deserialize<PingenErrorDocument>(

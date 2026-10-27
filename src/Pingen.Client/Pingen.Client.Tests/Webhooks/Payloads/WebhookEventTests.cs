@@ -8,7 +8,7 @@ namespace Pingen.Client.Tests.Webhooks.Payloads;
 public class WebhookEventTests : UnitTestBase
 {
     [Fact]
-    public void When_a_payload_is_read_without_its_envelope_Deserialize_leaves_the_type_empty()
+    public void Given_No_Envelope_Deserialize_Leaves_The_Type_Empty()
     {
         // Act
         var sent = JsonSerializer.Deserialize<WebhookSentEvent>(

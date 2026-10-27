@@ -14,7 +14,7 @@ public class PingenWebhookTests : WebhookTestBase
     [InlineData("webhook_delivered", typeof(WebhookDeliveredEvent))]
     [InlineData("webhook_undeliverable", typeof(WebhookUndeliverableEvent))]
     [InlineData("webhook_channel_subscriptions", typeof(WebhookChannelSubscriptionEvent))]
-    public void When_a_payload_is_signed_ConstructEvent_returns_the_event_its_type_names(string type, Type expected)
+    public void Given_A_Signed_Payload_ConstructEvent_Returns_The_Event_Its_Type_Names(string type, Type expected)
     {
         // Arrange
         var payload = Payload(type);
@@ -32,7 +32,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_a_delivery_runs_into_a_problem_ConstructEvent_maps_the_reason_and_the_deliverable_it_happened_on()
+    public void Given_An_Issues_Payload_ConstructEvent_Maps_The_Reason_And_The_Deliverable()
     {
         // Arrange
         var payload = IssuesPayload();
@@ -49,7 +49,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_a_delivery_comes_back_ConstructEvent_maps_the_reason_and_the_corrected_address()
+    public void Given_An_Undeliverable_Payload_ConstructEvent_Maps_The_Reason_And_The_Corrected_Address()
     {
         // Arrange
         var payload = UndeliverablePayload();
@@ -65,7 +65,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_a_recipient_asks_for_ebills_ConstructEvent_maps_the_subscription_and_its_channel()
+    public void Given_A_Channel_Subscription_ConstructEvent_Maps_The_Subscription_And_Its_Channel()
     {
         // Arrange
         var payload = ChannelSubscriptionPayload();
@@ -86,7 +86,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_no_signature_is_at_hand_ParseEvent_parses_the_payload_unverified()
+    public void ParseEvent_Parses_The_Payload_Unverified()
     {
         // Act
         var @event = PingenWebhook.ParseEvent(SentPayload());
@@ -97,7 +97,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_the_payload_carries_unicode_VerifySignature_accepts_its_exact_bytes_only()
+    public void Given_A_Unicode_Payload_VerifySignature_Accepts_Its_Exact_Bytes_Only()
     {
         // Arrange
         var payload = UndeliverablePayload();
@@ -115,7 +115,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_the_signature_is_uppercase_hex_VerifySignature_accepts_it()
+    public void Given_Uppercase_Hex_VerifySignature_Accepts_It()
     {
         // Arrange
         var payload = SentPayload();
@@ -128,7 +128,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_the_signature_was_made_with_another_key_VerifySignature_rejects_it()
+    public void Given_A_Signature_Of_Another_Key_VerifySignature_Rejects_It()
     {
         // Arrange
         var payload = SentPayload();
@@ -147,11 +147,11 @@ public class PingenWebhookTests : WebhookTestBase
     [InlineData("not-a-signature")]
     [InlineData("d09a095a0d1d2ae896f985c0fff1ad51")]
     [InlineData("000000000000000000000000000000000000000000000000000000000000000000")]
-    public void When_the_header_is_not_a_sha256_hex_digest_VerifySignature_rejects_it(string signatureHeader) =>
+    public void Given_A_Header_That_Is_No_Sha256_Hex_Digest_VerifySignature_Rejects_It(string signatureHeader) =>
         PingenWebhook.VerifySignature(SentPayload(), signatureHeader, Webhook.SigningKey).Should().BeFalse();
 
     [Fact]
-    public void When_the_header_drops_a_last_byte_of_zero_VerifySignature_rejects_it()
+    public void Given_A_Header_Missing_Its_Last_Zero_Byte_VerifySignature_Rejects_It()
     {
         // Arrange
         var signature = Sign(WebhookTestData.ZeroEndingPayload, WebhookTestData.ZeroEndingKey);
@@ -168,7 +168,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_the_signature_was_made_with_another_key_ConstructEvent_rejects_the_payload()
+    public void Given_A_Signature_Of_Another_Key_ConstructEvent_Rejects_The_Payload()
     {
         // Arrange
         var payload = SentPayload();
@@ -198,7 +198,7 @@ public class PingenWebhookTests : WebhookTestBase
     [InlineData("""{"data":{"type":"webhook_sent","attributes":{"url":"https://büro.example.ch","created_at":"2020-11-19T09:42:48+0100"}}}""")]
     [InlineData("""{"data":{"id":"not-a-guid","type":"webhook_sent","attributes":{"url":"https://büro.example.ch","created_at":"2020-11-19T09:42:48+0100"}}}""")]
     [InlineData("""{"data":{"id":"0a1b2c3d-9999-4000-8000-000000000009","type":"webhook_sent","attributes":{"url":"https://büro.example.ch","created_at":"gestern in Zürich"}}}""")]
-    public void When_the_payload_is_malformed_ParseEvent_rejects_it(string payload)
+    public void Given_A_Malformed_Payload_ParseEvent_Rejects_It(string payload)
     {
         // Act
         var act = () => PingenWebhook.ParseEvent(payload);
@@ -214,7 +214,7 @@ public class PingenWebhookTests : WebhookTestBase
     [InlineData("webhook_delivered")]
     [InlineData("webhook_undeliverable")]
     [InlineData("webhook_channel_subscriptions")]
-    public void When_the_attributes_are_null_ParseEvent_rejects_the_payload_for_carrying_none(string type)
+    public void Given_Null_Attributes_ParseEvent_Rejects_The_Payload_For_Carrying_None(string type)
     {
         // Arrange
         var payload = $$"""{ "data": { "id": "{{Webhook.EventId}}", "type": "{{type}}", "attributes": null } }""";
@@ -228,7 +228,7 @@ public class PingenWebhookTests : WebhookTestBase
     }
 
     [Fact]
-    public void When_a_signed_payload_is_malformed_ConstructEvent_rejects_it_rather_than_letting_a_json_error_out()
+    public void Given_A_Signed_Malformed_Payload_ConstructEvent_Rejects_It_Instead_Of_Throwing_A_Json_Error()
     {
         // Arrange
         var payload = """{"data":{"type":"webhook_sent","attributes":{}}}""";
@@ -247,7 +247,7 @@ public class PingenWebhookTests : WebhookTestBase
     [InlineData("WEBHOOK_SENT")]
     [InlineData("webhook_returned")]
     [InlineData("webhook_zurückgesendet_📮")]
-    public void When_the_payload_carries_an_unknown_type_ConstructEvent_throws_naming_it(string? type)
+    public void Given_An_Unknown_Type_ConstructEvent_Throws_Naming_It(string? type)
     {
         // Arrange
         var payload = Payload(type);

@@ -7,7 +7,7 @@ namespace Pingen.Client.Tests.Files;
 public class FileServiceTests : FileTestBase
 {
     [Fact]
-    public async Task When_an_upload_target_is_requested_RequestUploadAsync_gets_file_upload_and_maps_the_attributes()
+    public async Task RequestUploadAsync_Gets_File_Upload_And_Maps_The_Attributes()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument());
@@ -27,7 +27,7 @@ public class FileServiceTests : FileTestBase
     }
 
     [Fact]
-    public async Task When_content_is_uploaded_UploadAsync_puts_the_raw_bytes_to_the_presigned_url_unauthenticated()
+    public async Task UploadAsync_Puts_The_Raw_Bytes_To_The_Presigned_Url_Unauthenticated()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument());
@@ -51,7 +51,7 @@ public class FileServiceTests : FileTestBase
     }
 
     [Fact]
-    public async Task When_the_content_cannot_seek_UploadAsync_still_declares_a_content_length()
+    public async Task Given_Unseekable_Content_UploadAsync_Still_Declares_A_Content_Length()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument());
@@ -69,7 +69,7 @@ public class FileServiceTests : FileTestBase
     }
 
     [Fact]
-    public async Task When_the_presigned_url_rejects_the_upload_UploadAsync_throws_with_the_status()
+    public async Task Given_A_Rejected_Upload_UploadAsync_Throws_With_The_Status()
     {
         // Arrange
         Host.Api.EnqueueOk(UploadDocument());
@@ -86,7 +86,7 @@ public class FileServiceTests : FileTestBase
     }
 
     [Fact]
-    public async Task When_a_presigned_url_is_given_DownloadAsync_streams_it_without_authentication()
+    public async Task DownloadAsync_Streams_The_Presigned_Url_Without_Authentication()
     {
         // Arrange
         Host.Files.EnqueueBytes(File.Pdf);
@@ -111,7 +111,7 @@ public class FileServiceTests : FileTestBase
     [InlineData(HttpStatusCode.Forbidden)]
     [InlineData(HttpStatusCode.NotFound)]
     [InlineData(HttpStatusCode.InternalServerError)]
-    public async Task When_the_presigned_url_refuses_DownloadAsync_throws_with_the_status(HttpStatusCode status)
+    public async Task Given_A_Refused_Download_DownloadAsync_Throws_With_The_Status(HttpStatusCode status)
     {
         // Arrange
         Host.Files.Enqueue(StorageRejection(status));

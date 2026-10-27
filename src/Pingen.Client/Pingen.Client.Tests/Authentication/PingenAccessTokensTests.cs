@@ -11,7 +11,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     [InlineData("letter", "letter")]
     [InlineData("letter webhook user", "letter+webhook+user")]
     [InlineData("batch organisation_read", "batch+organisation_read")]
-    public async Task When_a_token_is_requested_GetAsync_posts_the_client_credentials_form(string scopes, string wire)
+    public async Task GetAsync_Posts_The_Client_Credentials_Form(string scopes, string wire)
     {
         // Arrange
         HostWith(options => options.Scopes = scopes);
@@ -33,7 +33,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task When_no_scopes_are_configured_GetAsync_omits_the_scope_field(string? scopes)
+    public async Task Given_No_Scopes_GetAsync_Omits_The_Scope_Field(string? scopes)
     {
         // Arrange
         HostWith(options => options.Scopes = scopes);
@@ -46,7 +46,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_the_staging_environment_is_configured_GetAsync_talks_to_the_staging_identity_host()
+    public async Task Given_The_Staging_Environment_GetAsync_Talks_To_The_Staging_Identity_Host()
     {
         // Arrange
         HostWith(options => options.Environment = PingenEnvironment.Staging);
@@ -59,7 +59,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_an_identity_address_is_configured_GetAsync_posts_to_it_instead()
+    public async Task Given_An_Identity_Address_GetAsync_Posts_To_It_Instead()
     {
         // Arrange
         HostWith(options => options.IdentityAddress = Data.Options.IdentityAddress);
@@ -72,7 +72,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_a_cached_token_is_still_valid_GetAsync_does_not_request_a_second_one()
+    public async Task Given_A_Valid_Cached_Token_GetAsync_Requests_No_Second_One()
     {
         // Act
         var first = await Tokens.GetAsync(Ct);
@@ -89,7 +89,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     [InlineData(1)]
     [InlineData(59)]
     [InlineData(60)]
-    public async Task When_the_cached_token_expires_within_the_refresh_window_GetAsync_requests_a_new_one(int expiresIn)
+    public async Task Given_A_Token_Inside_The_Refresh_Window_GetAsync_Requests_A_New_One(int expiresIn)
     {
         // Arrange
         Host.Identity.Clear();
@@ -105,8 +105,28 @@ public class PingenAccessTokensTests : AuthenticationTestBase
         Host.Identity.Requests.Should().HaveCount(2);
     }
 
+    [Theory]
+    [InlineData(59_999, 1)]
+    [InlineData(60_000, 2)]
+    [InlineData(60_001, 2)]
+    public async Task Given_A_Two_Minute_Token_GetAsync_Reuses_It_Until_A_Minute_Is_Left(int elapsed, int issued)
+    {
+        // Arrange
+        Host.Identity.Clear();
+        Host.EnqueueToken(Authentication.ExpiringToken, expiresIn: 120).EnqueueToken(Authentication.FreshToken);
+
+        await Tokens.GetAsync(Ct);
+
+        // Act
+        Host.Clock.Advance(TimeSpan.FromMilliseconds(elapsed));
+        await Tokens.GetAsync(Ct);
+
+        // Assert
+        Host.Identity.Requests.Should().HaveCount(issued);
+    }
+
     [Fact]
-    public async Task When_Invalidate_runs_during_a_refresh_GetAsync_does_not_cache_the_token_it_was_waiting_for()
+    public async Task Given_An_Invalidate_During_A_Refresh_GetAsync_Does_Not_Cache_The_Token_It_Waited_For()
     {
         // Arrange
         Host.EnqueueToken(Authentication.FreshToken);
@@ -139,7 +159,7 @@ public class PingenAccessTokensTests : AuthenticationTestBase
     }
 
     [Fact]
-    public async Task When_the_identity_host_rejects_the_credentials_GetAsync_throws_a_PingenException()
+    public async Task Given_Rejected_Credentials_GetAsync_Throws_A_PingenException()
     {
         // Arrange
         Host.Identity.Clear().Enqueue(Rejection(HttpStatusCode.Unauthorized));

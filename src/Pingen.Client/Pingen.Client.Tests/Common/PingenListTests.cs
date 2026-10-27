@@ -7,7 +7,7 @@ namespace Pingen.Client.Tests.Common;
 public class PingenListTests : UnitTestBase
 {
     [Fact]
-    public void When_a_page_is_wrapped_PingenList_enumerates_it_and_keeps_links_and_meta()
+    public void A_Wrapped_Page_Is_Enumerated_With_Its_Links_And_Meta()
     {
         // Arrange
         var links = new ListLinks { Next = "https://api.pingen.com/letters?page[number]=2" };

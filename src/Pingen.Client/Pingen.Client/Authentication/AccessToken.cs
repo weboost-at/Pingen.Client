@@ -11,9 +11,9 @@ public record AccessToken(string Value, DateTimeOffset ExpiresAt)
     private static readonly TimeSpan RefreshWindow = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Whether the token has reached its refresh point and must be replaced.
+    /// Whether the token has reached its refresh point at <paramref name="now"/> and must be replaced.
     /// </summary>
-    public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresAt - RefreshWindow;
+    public bool IsExpiredAt(DateTimeOffset now) => now >= ExpiresAt - RefreshWindow;
 }
 
 /// <summary>

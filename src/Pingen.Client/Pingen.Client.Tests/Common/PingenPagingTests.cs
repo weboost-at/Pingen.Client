@@ -9,7 +9,7 @@ public class PingenPagingTests : UnitTestBase
     private readonly PageRecorder _pages = new();
 
     [Fact]
-    public async Task When_pages_follow_each_other_EnumerateAsync_yields_every_item_in_order()
+    public async Task Every_Item_Of_Every_Page_Is_Yielded_In_Order()
     {
         // Arrange
         _pages
@@ -25,7 +25,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_the_current_page_is_the_last_EnumerateAsync_fetches_no_further()
+    public async Task Given_The_Last_Page_No_Further_Page_Is_Fetched()
     {
         // Arrange
         _pages
@@ -41,7 +41,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_the_current_page_is_past_the_last_EnumerateAsync_fetches_no_further()
+    public async Task Given_A_Page_Past_The_Last_No_Further_Page_Is_Fetched()
     {
         // Arrange
         _pages.Enqueue(Page(number: 3, lastPage: 2, "Zürich")).Enqueue(Page(number: 4, lastPage: 4, "Genève"));
@@ -54,7 +54,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_a_page_is_empty_EnumerateAsync_stops_though_its_meta_claims_more()
+    public async Task Given_An_Empty_Page_The_Walk_Stops_Though_Its_Meta_Claims_More()
     {
         // Arrange
         _pages.Enqueue(Page(number: 1, lastPage: 3)).Enqueue(Page(number: 2, lastPage: 3, "Zürich"));
@@ -67,7 +67,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_a_page_has_no_meta_EnumerateAsync_takes_it_for_the_whole_collection()
+    public async Task Given_A_Page_Without_Meta_It_Is_Taken_For_The_Whole_Collection()
     {
         // Arrange
         _pages
@@ -83,7 +83,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_a_page_is_done_EnumerateAsync_asks_for_the_next_and_keeps_every_other_option()
+    public async Task The_Next_Page_Is_Asked_For_With_Every_Other_Option_Kept()
     {
         // Arrange
         _pages.Enqueue(Page(number: 2, lastPage: 3, "Zürich")).Enqueue(Page(number: 3, lastPage: 3, "Genève"));
@@ -108,7 +108,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_no_options_are_given_EnumerateAsync_starts_from_the_defaults()
+    public async Task Given_No_Options_The_Walk_Starts_From_The_Defaults()
     {
         // Arrange
         _pages.Enqueue(Page(number: 1, lastPage: 2, "Zürich")).Enqueue(Page(number: 2, lastPage: 2, "Genève"));
@@ -121,7 +121,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_a_token_is_passed_EnumerateAsync_hands_it_to_every_fetch()
+    public async Task Given_A_Token_Argument_It_Reaches_Every_Fetch()
     {
         // Arrange
         _pages.Enqueue(Page(number: 1, lastPage: 2, "Zürich")).Enqueue(Page(number: 2, lastPage: 2, "Genève"));
@@ -134,7 +134,7 @@ public class PingenPagingTests : UnitTestBase
     }
 
     [Fact]
-    public async Task When_the_enumerator_gets_a_token_EnumerateAsync_hands_it_to_every_fetch()
+    public async Task Given_A_Token_On_The_Enumerator_It_Reaches_Every_Fetch()
     {
         // Arrange
         _pages.Enqueue(Page(number: 1, lastPage: 2, "Zürich")).Enqueue(Page(number: 2, lastPage: 2, "Genève"));
