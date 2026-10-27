@@ -4,24 +4,27 @@ using Pingen.Client.Common.Json;
 
 namespace Pingen.Client.Tests.Common.Json;
 
-public class PingenDateTimeConverterTests
+public class PingenDateTimeConverterTests : UnitTestBase
 {
     [Theory]
-    [InlineData("2021-11-19T09:42:48+0100", 1)]
-    [InlineData("2021-11-19T09:42:48+01:00", 1)]
+    [InlineData("2021-11-19T09:42:48+0100", 60)]
+    [InlineData("2021-11-19T09:42:48+01:00", 60)]
     [InlineData("2021-11-19T09:42:48+0000", 0)]
     [InlineData("2021-11-19T09:42:48Z", 0)]
-    public void When_the_offset_omits_its_colon_Read_still_parses_the_timestamp(string wire, int offsetHours)
+    [InlineData("2021-11-19T09:42:48-0530", -330)]
+    [InlineData("2021-11-19T09:42:48+0545", 345)]
+    [InlineData("2021-11-19T09:42:48+1400", 840)]
+    public void When_the_offset_omits_its_colon_Read_still_parses_the_timestamp(string wire, int offsetMinutes)
     {
         // Arrange
-        var expected = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromHours(offsetHours));
+        var expected = new DateTimeOffset(2021, 11, 19, 9, 42, 48, TimeSpan.FromMinutes(offsetMinutes));
 
         // Act
         var parsed = JsonSerializer.Deserialize<DateTimeOffset>($"\"{wire}\"", PingenJson.Options);
 
         // Assert
         parsed.Should().Be(expected);
-        parsed.Offset.Should().Be(TimeSpan.FromHours(offsetHours));
+        parsed.Offset.Should().Be(expected.Offset);
     }
 
     [Theory]

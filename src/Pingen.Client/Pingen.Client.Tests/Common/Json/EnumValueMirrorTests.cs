@@ -9,7 +9,7 @@ using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Tests.Common.Json;
 
-public class EnumValueMirrorTests
+public class EnumValueMirrorTests : UnitTestBase
 {
     [Theory]
     [InlineData(typeof(AddressPosition), typeof(AddressPositionValue))]
@@ -20,10 +20,13 @@ public class EnumValueMirrorTests
     [InlineData(typeof(BatchIcon), typeof(BatchIconValue))]
     [InlineData(typeof(PaperType), typeof(PaperTypeValue))]
     [InlineData(typeof(BatchChannelType), typeof(BatchChannelTypeValue))]
-    public void When_an_enum_is_serialized_every_wire_name_is_declared_on_its_value_class(Type enumType, Type valueType)
+    public void When_an_enum_is_written_Serialize_uses_only_its_value_class_constants(Type enumType, Type valueType)
     {
         // Act
-        var written = WireNames(enumType);
+        var written = Enum.GetValues(enumType)
+            .Cast<object>()
+            .Select(value => JsonSerializer.Serialize(value, enumType, PingenJson.Options).Trim('"'))
+            .ToList();
 
         // Assert
         written.Should().BeSubsetOf(Constants(valueType));
@@ -37,7 +40,7 @@ public class EnumValueMirrorTests
     [InlineData(typeof(BatchIcon), typeof(BatchIconValue))]
     [InlineData(typeof(PaperType), typeof(PaperTypeValue))]
     [InlineData(typeof(BatchChannelType), typeof(BatchChannelTypeValue))]
-    public void When_a_value_class_mirrors_an_enum_it_declares_one_distinct_constant_per_member(Type enumType, Type valueType)
+    public void Given_a_value_class_When_it_mirrors_an_enum_It_declares_each_member_once(Type enumType, Type valueType)
     {
         // Act
         var constants = Constants(valueType);
@@ -51,11 +54,5 @@ public class EnumValueMirrorTests
         valueType.GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(field => field is { IsLiteral: true, IsInitOnly: false })
             .Select(field => (string)field.GetRawConstantValue()!)
-            .ToList();
-
-    private static IReadOnlyList<string> WireNames(Type enumType) =>
-        Enum.GetValues(enumType)
-            .Cast<object>()
-            .Select(value => JsonSerializer.Serialize(value, enumType, PingenJson.Options).Trim('"'))
             .ToList();
 }

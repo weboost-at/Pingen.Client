@@ -5,14 +5,14 @@ using Pingen.Client.Common.Json;
 
 namespace Pingen.Client.Tests.Common.Json;
 
-public class PingenEnumConverterTests
+public class PingenEnumConverterTests : UnitTestBase
 {
     [Theory]
     [InlineData(TestIcon.WaveHand, "\"wave-hand\"")]
     [InlineData(TestIcon.PercentTag, "\"percent-tag\"")]
     [InlineData(TestIcon.QrInvoice, "\"qr_invoice\"")]
     [InlineData(TestIcon.Campaign, "\"Campaign\"")]
-    public void When_a_member_declares_a_wire_name_the_enum_round_trips_through_it(TestIcon icon, string wire)
+    public void When_a_member_round_trips_Serialize_and_Deserialize_use_its_wire_name(TestIcon icon, string wire)
     {
         // Act
         var written = JsonSerializer.Serialize(icon, PingenJson.Options);
@@ -26,8 +26,13 @@ public class PingenEnumConverterTests
     [Theory]
     [InlineData("\"waveHand\"")]
     [InlineData("\"wave_hand\"")]
+    [InlineData("\"WaveHand\"")]
+    [InlineData("\"wavé-hand\"")]
+    [InlineData("\"\"")]
+    [InlineData("null")]
+    [InlineData("\"1\"")]
     [InlineData("0")]
-    public void When_the_wire_value_is_not_a_declared_name_Read_throws(string wire)
+    public void When_the_wire_value_is_not_a_declared_name_Deserialize_throws(string wire)
     {
         // Act
         var read = () => JsonSerializer.Deserialize<TestIcon>(wire, PingenJson.Options);
@@ -47,6 +52,6 @@ public class PingenEnumConverterTests
         [JsonStringEnumMemberName("qr_invoice")]
         QrInvoice,
 
-        Campaign,
+        Campaign
     }
 }
