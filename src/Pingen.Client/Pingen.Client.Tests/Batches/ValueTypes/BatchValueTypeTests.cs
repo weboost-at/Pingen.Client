@@ -3,6 +3,7 @@ using FluentAssertions;
 using Pingen.Client.Batches;
 using Pingen.Client.Batches.ValueTypes;
 using Pingen.Client.Common.Json;
+using Pingen.Client.Deliveries.ValueTypes;
 
 namespace Pingen.Client.Tests.Batches.ValueTypes;
 
@@ -83,5 +84,31 @@ public class BatchValueTypeTests : UnitTestBase
         written.Should().HaveCount(16);
         written.Should().OnlyContain(name => name == name.ToLowerInvariant() && !name.Contains('_'));
         written.Should().Contain(["wave-hand", "percent-tag", "percent-badge"]);
+    }
+
+    [Theory]
+    [InlineData(DeliveryProduct.Fast, BatchDeliveryProduct.Fast)]
+    [InlineData(DeliveryProduct.Cheap, BatchDeliveryProduct.Cheap)]
+    [InlineData(DeliveryProduct.Bulk, BatchDeliveryProduct.Bulk)]
+    [InlineData(DeliveryProduct.Premium, BatchDeliveryProduct.Premium)]
+    [InlineData(DeliveryProduct.Registered, BatchDeliveryProduct.Registered)]
+    public void When_a_postal_product_is_given_Post_maps_it(DeliveryProduct product, BatchDeliveryProduct expected) =>
+        BatchSendOptions.Post(product, PrintMode.Simplex, PrintSpectrum.Color).Product.Should().Be(expected);
+
+    [Theory]
+    [InlineData((DeliveryProduct)(-1))]
+    [InlineData((DeliveryProduct)5)]
+    [InlineData((DeliveryProduct)99)]
+    [InlineData((DeliveryProduct)int.MaxValue)]
+    public void When_the_product_has_no_batch_counterpart_Post_throws(DeliveryProduct product)
+    {
+        // Act
+        var post = () => BatchSendOptions.Post(product, PrintMode.Simplex, PrintSpectrum.Color);
+
+        // Assert
+        post.Should()
+            .Throw<ArgumentOutOfRangeException>()
+            .WithParameterName("product")
+            .WithMessage("The post channel of a batch knows no such delivery product.*");
     }
 }
