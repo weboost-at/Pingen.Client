@@ -99,6 +99,21 @@ public class PingenConfigurationTests : TestBase
     }
 
     [Fact]
+    public void AddPingen_Leaves_The_Files_Client_Unauthenticated()
+    {
+        // Arrange
+        using var provider = new ServiceCollection().AddPingen(_ => { }).BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpMessageHandlerFactory>();
+
+        // Act
+        List<HttpMessageHandler> chain = [factory.CreateHandler(PingenClient.FilesClientName)];
+        while (chain[^1] is DelegatingHandler { InnerHandler: { } inner }) chain.Add(inner);
+
+        // Assert
+        chain.OfType<PingenAuthenticationHandler>().Should().BeEmpty();
+    }
+
+    [Fact]
     public void AddPingen_Hands_Out_One_Token_Cache() =>
         Resolve<PingenAccessTokens>().Should().BeSameAs(Resolve<PingenAccessTokens>());
 

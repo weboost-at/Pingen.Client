@@ -51,9 +51,6 @@ public static class PingenConfiguration
             client.DefaultRequestHeaders.Accept.Add(new("application/json"));
         });
 
-        // Presigned URLs carry their own signature and reject an Authorization header - this client stays untouched.
-        services.AddHttpClient(PingenClient.FilesClientName);
-
         services.AddHttpClient<PingenClient>((provider, client) =>
             {
                 var options = Settings(provider);
