@@ -347,7 +347,7 @@
       "kind": "operation",
       "digest": "6ae7c009f30a",
       "sdk": "OrganisationService.ListAsync — src/Pingen.Client/Pingen.Client/Organisations/OrganisationService.cs",
-      "notes": null
+      "notes": "OrganisationAttributes reads `default_country` and the three `limits_monthly_*_count` attributes as optional, since the live API leaves them out (staging, 2026-11-19)."
     },
     {
       "id": "organisations.letters.events.delivered",
@@ -392,7 +392,7 @@
       "kind": "operation",
       "digest": "022f9dd905c8",
       "sdk": "OrganisationService.GetAsync — src/Pingen.Client/Pingen.Client/Organisations/OrganisationService.cs",
-      "notes": null
+      "notes": "OrganisationAttributes reads `default_country` and the three `limits_monthly_*_count` attributes as optional, since the live API leaves them out (staging, 2026-11-19)."
     },
     {
       "id": "user.associations.list",

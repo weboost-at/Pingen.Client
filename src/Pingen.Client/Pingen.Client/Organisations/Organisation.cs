@@ -101,10 +101,10 @@ public record OrganisationAttributes
     public required string Edition { get; init; }
 
     /// <summary>
-    /// The ISO 3166-1 alpha-2 country new deliveries default to.
+    /// The ISO 3166-1 alpha-2 country new deliveries default to - null when Pingen leaves it out.
     /// </summary>
     [JsonPropertyName("default_country")]
-    public required string DefaultCountry { get; init; }
+    public string? DefaultCountry { get; init; }
 
     /// <summary>
     /// Which window new letters default to - the values are named on <see cref="AddressPositionValue"/>.
@@ -125,22 +125,22 @@ public record OrganisationAttributes
     public required int DataRetentionPdf { get; init; }
 
     /// <summary>
-    /// How many letters the organisation may send per month - null when Pingen reports none.
+    /// How many letters the organisation may send per month - null when Pingen reports none or leaves it out.
     /// </summary>
     [JsonPropertyName("limits_monthly_letters_count")]
-    public required int? LimitsMonthlyLettersCount { get; init; }
+    public int? LimitsMonthlyLettersCount { get; init; }
 
     /// <summary>
-    /// How many ebills the organisation may send per month - null when Pingen reports none.
+    /// How many ebills the organisation may send per month - null when Pingen reports none or leaves it out.
     /// </summary>
     [JsonPropertyName("limits_monthly_ebills_count")]
-    public required int? LimitsMonthlyEbillsCount { get; init; }
+    public int? LimitsMonthlyEbillsCount { get; init; }
 
     /// <summary>
-    /// How many emails the organisation may send per month - null when Pingen reports none.
+    /// How many emails the organisation may send per month - null when Pingen reports none or leaves it out.
     /// </summary>
     [JsonPropertyName("limits_monthly_emails_count")]
-    public required int? LimitsMonthlyEmailsCount { get; init; }
+    public int? LimitsMonthlyEmailsCount { get; init; }
 
     /// <summary>
     /// The colour the organisation is marked with in the app, as a hex triplet.

@@ -138,6 +138,25 @@ public class OrganisationServiceTests : OrganisationTestBase
     }
 
     [Fact]
+    public async Task Given_No_Country_Or_Limit_Keys_GetAsync_Reads_The_Billing_And_Maps_Them_To_Null()
+    {
+        // Arrange
+        Host.Api.EnqueueOk(OrganisationDocument(optionalKeys: false));
+
+        // Act
+        var organisation = await Organisations.GetAsync(Organisation.Id, Ct);
+
+        // Assert
+        organisation.Attributes.BillingBalance.Should().Be(11.23m);
+        organisation.Attributes.BillingCurrency.Should().Be("CHF");
+
+        organisation.Attributes.DefaultCountry.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyEbillsCount.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyEmailsCount.Should().BeNull();
+        organisation.Attributes.LimitsMonthlyLettersCount.Should().BeNull();
+    }
+
+    [Fact]
     public async Task Given_A_Rate_Limit_ListAsync_Throws_With_The_Retry_Delay_And_The_Request_Id()
     {
         // Arrange
