@@ -2,8 +2,8 @@
   "specTitle": "Pingen by Pingen GmbH",
   "specVersion": "2.0.0",
   "specUrl": "https://api.pingen.com/documentation/swagger-docs",
-  "lastSync": "2026-10-01",
-  "generatedFrom": "sha256:6937c2821a04c3f48d01b6a39223f947fc0703438ffa4730b8330ad6ba615f3b",
+  "lastSync": "2026-11-01",
+  "generatedFrom": "sha256:7958634a59259d6539a736ab7f5e53626fb0bfc8109eaba964c5b0887d7a9c78",
   "authDigest": "660617c10420",
   "emptyPathCount": 182,
   "operations": [
@@ -93,7 +93,7 @@
       "method": "POST",
       "path": "/organisations/{organisationId}/deliveries/ebills",
       "kind": "operation",
-      "digest": "c13cfa55e883",
+      "digest": "10274dca1826",
       "sdk": "EbillService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
       "notes": "The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
     },
@@ -147,7 +147,7 @@
       "method": "PATCH",
       "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}/send",
       "kind": "operation",
-      "digest": "88515bed564a",
+      "digest": "d3a1c8015d47",
       "sdk": "EbillService.SendAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
       "notes": null
     },
@@ -156,7 +156,7 @@
       "method": "GET",
       "path": "/organisations/{organisationId}/deliveries/ebills/{ebillId}",
       "kind": "operation",
-      "digest": "9d67b186573c",
+      "digest": "67dce4d6ab44",
       "sdk": "EbillService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Ebills/EbillService.cs",
       "notes": null
     },
@@ -174,7 +174,7 @@
       "method": "POST",
       "path": "/organisations/{organisationId}/deliveries/emails",
       "kind": "operation",
-      "digest": "4428e71642e8",
+      "digest": "4919e233d43f",
       "sdk": "EmailService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
       "notes": "The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
     },
@@ -228,7 +228,7 @@
       "method": "GET",
       "path": "/organisations/{organisationId}/deliveries/emails/{emailId}",
       "kind": "operation",
-      "digest": "6f60ffac83e9",
+      "digest": "e9f796b66cfd",
       "sdk": "EmailService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Emails/EmailService.cs",
       "notes": null
     },
@@ -255,7 +255,7 @@
       "method": "POST",
       "path": "/organisations/{organisationId}/deliveries/letters",
       "kind": "operation",
-      "digest": "e1096ef60b7d",
+      "digest": "bb309578161a",
       "sdk": "LetterService.CreateAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
       "notes": "LetterAddress models all seven address fields optional although SendMetaDataRecipientAttributes and SendMetaDataSenderAttributes mark every one of them required, since the field descriptions ask for both the street and the PO box shape and only one of the two can be given. The relationships schema carries the bogus `required: [\"\"]` artifact, which the SDK ignores."
     },
@@ -318,7 +318,7 @@
       "method": "PATCH",
       "path": "/organisations/{organisationId}/deliveries/letters/{letterId}/send",
       "kind": "operation",
-      "digest": "bc3fa0b695a9",
+      "digest": "b338255c40ab",
       "sdk": "LetterService.SendAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
       "notes": "LetterAddress models all seven address fields optional although SendMetaDataRecipientAttributes and SendMetaDataSenderAttributes mark every one of them required, since the field descriptions ask for both the street and the PO box shape and only one of the two can be given."
     },
@@ -327,7 +327,7 @@
       "method": "GET",
       "path": "/organisations/{organisationId}/deliveries/letters/{letterId}",
       "kind": "operation",
-      "digest": "8945d19df6c5",
+      "digest": "169dd71e36a7",
       "sdk": "LetterService.GetAsync — src/Pingen.Client/Pingen.Client/Deliveries/Letters/LetterService.cs",
       "notes": "`is_embedded` is typed boolean but documented with the numeric example `1`, so LetterFont reads it through PingenBooleanConverter and accepts both."
     },

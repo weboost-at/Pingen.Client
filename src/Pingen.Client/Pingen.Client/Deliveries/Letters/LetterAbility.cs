@@ -12,6 +12,11 @@ public static class LetterAbility
     public const string AddAttachment = "add-attachment";
 
     /// <summary>
+    /// Add it to a batch.
+    /// </summary>
+    public const string AddToBatch = "add-to-batch";
+
+    /// <summary>
     /// Apply a preset's defaults.
     /// </summary>
     public const string ApplyPreset = "apply-preset";
@@ -90,6 +95,11 @@ public static class LetterAbility
     /// Download the validation report.
     /// </summary>
     public const string GetPdfValidation = "get-pdf-validation";
+
+    /// <summary>
+    /// Take it out of its batch.
+    /// </summary>
+    public const string RemoveFromBatch = "remove-from-batch";
 
     /// <summary>
     /// Undo the corrections and return to the uploaded file.
